@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MiniBanco POO · Programación orientada a objetos paso a paso</title>
+<meta name="description" content="Una cuenta bancaria que muestra, en cada clic, qué código Java se ejecuta y qué pasa en la memoria.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F6F5; --panel:#FFFFFF; --ink:#14273D; --muted:#5B6B7A; --line:#D5DDE3;
+  --vault:#1F5F8B; --mint:#2E8B6E; --danger:#B4443A; --exec:rgba(244,201,93,.55);
+  --code:#0E1B2A; --code-ink:#DCE6EF; --code-dim:#6F8597; --kw:#7FC4F2; --str:#9BD8A8; --num:#F4C95D;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1A26; --panel:#16232F; --ink:#E6EDF3; --muted:#93A4B4; --line:#26384A;
+    --vault:#6FB1E0; --mint:#5CC6A0; --danger:#E07A70; --exec:rgba(244,201,93,.25);
+    --code:#0A141F; color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--vault)}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 20px 48px}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:24px}
+header.top h1{margin:0;font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.1;letter-spacing:-.02em}
+header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.fase{font:600 .85rem "IBM Plex Mono",monospace;border:1.5px solid var(--ink);padding:6px 10px;border-radius:4px;white-space:nowrap}
+.back{font-size:.9rem;text-decoration:none}
+
+.grid{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-areas:"acc code exp" "acc code mem";align-items:start}
+@media (max-width:1100px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"acc exp" "code mem"}}
+@media (max-width:720px){.grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"acc" "exp" "mem" "code"}}
+.acc{grid-area:acc}.code{grid-area:code}.mem{grid-area:mem}.exp{grid-area:exp}
+
+section.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+h2{font-size:1.05rem;margin:0 0 12px;letter-spacing:-.01em}
+h2 small{display:block;font-weight:400;color:var(--muted);font-size:.85rem;margin-top:2px}
+
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+button{font:600 .95rem "IBM Plex Sans",sans-serif;padding:10px 12px;border-radius:6px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;width:100%;margin-top:10px}
+button.alt{background:transparent;color:var(--ink)}
+button.risk{background:transparent;color:var(--danger);border-color:var(--danger)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--vault);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sep{border:0;border-top:1px dashed var(--line);margin:18px 0 6px}
+.hint{font-size:.82rem;color:var(--muted);margin:6px 0 0}
+
+/* Código */
+.codewin{background:var(--code);color:var(--code-ink);border-radius:8px;overflow:auto;font:13.5px/1.6 "IBM Plex Mono",ui-monospace,Consolas,monospace;margin-bottom:16px}
+.codewin .tab{font-size:.75rem;color:var(--code-dim);padding:8px 14px;border-bottom:1px solid #1E3247}
+.codewin pre{margin:0;padding:10px 0;min-width:max-content}
+.ln{display:block;padding:0 14px 0 0;transition:background .25s}
+.ln .n{display:inline-block;width:3.2em;text-align:right;padding-right:1em;color:var(--code-dim);user-select:none}
+.ln.on{background:rgba(244,201,93,.22);box-shadow:inset 3px 0 0 #F4C95D}
+.kw{color:var(--kw)}.st{color:var(--str)}.nu{color:var(--num)}.cm{color:var(--code-dim);font-style:italic}
+
+/* Memoria */
+.heap{display:grid;gap:12px}
+.empty{color:var(--muted);font-size:.92rem;border:1.5px dashed var(--line);border-radius:8px;padding:18px;text-align:center}
+.obj{border:1.5px solid var(--vault);border-radius:8px;overflow:hidden;animation:born .5s ease-out}
+.obj.sel{box-shadow:0 0 0 3px color-mix(in srgb,var(--vault) 30%,transparent)}
+.obj .hd{display:flex;justify-content:space-between;gap:8px;background:var(--vault);color:var(--panel);padding:6px 10px;font:600 .85rem "IBM Plex Mono",monospace}
+.obj .hd span:last-child{opacity:.8;font-weight:400}
+.obj table{width:100%;border-collapse:collapse;font:.85rem "IBM Plex Mono",monospace}
+.obj td{padding:6px 10px;border-top:1px solid var(--line)}
+.obj td.t{color:var(--muted);width:4.5em}
+.obj td.v{text-align:right;font-weight:600}
+.obj tr.flash td{animation:flash 1.2s ease-out}
+@keyframes born{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes flash{0%{background:var(--exec)}100%{background:transparent}}
+.refnote{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+
+/* Explicación */
+.exp h3{margin:0 0 6px;font-size:1.1rem}
+.exp p{margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid var(--mint);color:var(--mint);font-weight:600}
+.warn{border-left:4px solid var(--danger);padding:8px 12px;background:color-mix(in srgb,var(--danger) 10%,transparent);border-radius:0 6px 6px 0;font-size:.92rem}
+.paso{font:600 .78rem "IBM Plex Mono",monospace;color:var(--muted);margin-bottom:6px}
+.console{background:var(--code);color:#B8F2C8;font:13px/1.5 "IBM Plex Mono",monospace;border-radius:8px;padding:10px 12px;min-height:3.5em;max-height:160px;overflow:auto;margin-top:12px}
+.console div::before{content:"> ";color:var(--code-dim)}
+
+/* Ruta */
+.ruta{margin-top:28px}
+.ruta ol{list-style:none;padding:0;margin:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));counter-reset:f}
+.ruta li{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel);counter-increment:f;opacity:.6}
+.ruta li::before{content:"Fase " counter(f);display:block;font:600 .78rem "IBM Plex Mono",monospace;color:var(--muted)}
+.ruta li.now{opacity:1;border:2px solid var(--mint)}
+.ruta li b{display:block;margin:2px 0}
+.ruta li span{font-size:.85rem;color:var(--muted)}
+footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">‹ Laboratorio IA</a>
+  <header class="top">
+    <div>
+      <h1>MiniBanco POO</h1>
+      <p>Cada clic ejecuta código Java real y te muestra qué línea corrió, qué objeto existe en memoria y por qué.</p>
+    </div>
+    <div class="fase">Fase 1 · Clases, objetos y métodos</div>
+  </header>
+
+  <div class="grid">
+    <!-- Acciones -->
+    <section class="box acc" aria-labelledby="h-acc">
+      <h2 id="h-acc">Acciones<small>Lo que haría el usuario del banco</small></h2>
+      <label for="titular">Titular de la cuenta</label>
+      <input id="titular" maxlength="20" value="Rick" autocomplete="off">
+      <button id="bCrear">Crear cuenta</button>
+      <p class="hint">Crea hasta 4 cuentas. Cada una es un objeto distinto hecho con la misma clase.</p>
+
+      <hr class="sep">
+      <label for="sel">Cuenta</label>
+      <select id="sel" disabled><option>Primero crea una cuenta</option></select>
+      <label for="monto">Monto (double)</label>
+      <input id="monto" type="number" step="0.01" value="1500.50" inputmode="decimal">
+      <div class="row2">
+        <button id="bDep" disabled>Depositar</button>
+        <button id="bCon" class="alt" disabled>Consultar saldo</button>
+      </div>
+
+      <hr class="sep">
+      <label>Experimento</label>
+      <button id="bHack" class="risk" disabled>Cambiar el saldo sin método</button>
+      <p class="hint">Escribe directo en el atributo. Hoy funciona… y eso es un problema que resolvemos en la fase 2.</p>
+      <button id="bReset" class="alt">Reiniciar</button>
+    </section>
+
+    <!-- Código -->
+    <section class="box code" aria-labelledby="h-code">
+      <h2 id="h-code">El código<small>Resaltado: lo que se acaba de ejecutar</small></h2>
+      <div class="codewin"><div class="tab">MiniBanco.java · método main</div><pre id="mainCode"></pre></div>
+      <div class="codewin"><div class="tab">Cuenta.java · la clase (el molde)</div><pre id="classCode"></pre></div>
+    </section>
+
+    <!-- Memoria -->
+    <section class="box mem" aria-labelledby="h-mem">
+      <h2 id="h-mem">La memoria<small>Objetos vivos en el heap de la JVM</small></h2>
+      <div class="heap" id="heap"></div>
+      <p class="refnote"><b>c1</b>, <b>c2</b>… no son los objetos: son variables de referencia que apuntan a ellos.</p>
+    </section>
+
+    <!-- Explicación -->
+    <section class="box exp" aria-live="polite" aria-labelledby="h-exp">
+      <h2 id="h-exp">Qué está pasando</h2>
+      <div id="exp"></div>
+      <div class="console" id="console" aria-label="Consola de salida"></div>
+    </section>
+  </div>
+
+  <section class="ruta" aria-labelledby="h-ruta">
+    <h2 id="h-ruta">Cómo va a crecer esta app</h2>
+    <ol>
+      <li class="now"><b>Clases y objetos</b><span>Cuenta, new, depositar(), consultarSaldo()</span></li>
+      <li><b>Encapsulación</b><span>Constructor, private y getters</span></li>
+      <li><b>Control de flujo</b><span>if para retiros, menú con switch, ciclos</span></li>
+      <li><b>Arreglos</b><span>Historial de movimientos y matriz por mes</span></li>
+      <li><b>Herencia y polimorfismo</b><span>CuentaAhorro y CuentaCheques</span></li>
+      <li><b>Excepciones e hilos</b><span>Saldo insuficiente y dos cajeros a la vez</span></li>
+    </ol>
+  </section>
+
+  <footer>
+    Proyecto de la materia Programación orientada a objetos, Licenciatura en Inteligencia Artificial (UTEL). Erick Domínguez Del Prado, 2026.
+    El código Java original está en la carpeta <a href="java/">java/</a> y se abre en BlueJ.
+  </footer>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.getElementById(s);
+  const CLASS = [
+    ['public class Cuenta {','cls'],
+    ['    // atributos: el estado de cada objeto',''],
+    ['    String titular;','at'],
+    ['    int numero;','an'],
+    ['    double saldo;','as'],
+    ['',''],
+    ['    public void depositar(double monto) {','md'],
+    ['        saldo = saldo + monto;','md'],
+    ['    }','md'],
+    ['',''],
+    ['    public double consultarSaldo() {','mc'],
+    ['        return saldo;','mc'],
+    ['    }','mc'],
+    ['}','cls']
+  ];
+  const START = [
+    'public static void main(String[] args) {',
+    '    System.out.println("Hola Mundo, bienvenido a MiniBanco POO");'
+  ];
+  let main, hot, classHot, cuentas, paso, flashRef, flashField;
+
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function color(line){
+    let h = esc(line);
+    if(/^\s*\/\//.test(line)) return '<span class="cm">'+h+'</span>';
+    h = h.replace(/("[^"]*")|\b(public|class|void|double|int|return|new|static|String)\b|\b(\d+(?:\.\d+)?)\b/g,
+      (m,str,kw,num) => str ? '<span class="st">'+str+'</span>' : kw ? '<span class="kw">'+kw+'</span>' : '<span class="nu">'+num+'</span>');
+    return h;
+  }
+  const jd = x => Number.isInteger(x) ? x.toFixed(1) : String(+x.toFixed(2));
+
+  function render(){
+    $('mainCode').innerHTML = main.concat(['}']).map((l,i)=>
+      '<span class="ln'+(hot.includes(i)?' on':'')+'"><span class="n">'+(i+1)+'</span>'+(color(l)||' ')+'</span>').join('');
+    $('classCode').innerHTML = CLASS.map((l,i)=>
+      '<span class="ln'+(l[1]&&classHot.includes(l[1])?' on':'')+'"><span class="n">'+(i+1)+'</span>'+(color(l[0])||' ')+'</span>').join('');
+    const heap = $('heap');
+    if(!cuentas.length){ heap.innerHTML = '<div class="empty">La memoria está vacía. Crea una cuenta para ver nacer tu primer objeto.</div>'; }
+    else heap.innerHTML = cuentas.map(c=>{
+      const f = k => (flashRef===c.ref && flashField===k) ? ' class="flash"' : '';
+      return '<div class="obj'+(c.ref===$('sel').value?' sel':'')+'"><div class="hd"><span>'+c.ref+' → Cuenta</span><span>@'+c.hash+'</span></div><table>'+
+        '<tr'+f('titular')+'><td class="t">String</td><td>titular</td><td class="v">"'+esc(c.titular)+'"</td></tr>'+
+        '<tr'+f('numero')+'><td class="t">int</td><td>numero</td><td class="v">'+c.numero+'</td></tr>'+
+        '<tr'+f('saldo')+'><td class="t">double</td><td>saldo</td><td class="v">'+jd(c.saldo)+'</td></tr></table></div>';
+    }).join('');
+    const sel = $('sel'), cur = sel.value;
+    if(cuentas.length){
+      sel.innerHTML = cuentas.map(c=>'<option value="'+c.ref+'">'+c.ref+' · '+esc(c.titular)+'</option>').join('');
+      sel.value = cuentas.some(c=>c.ref===cur) ? cur : cuentas[cuentas.length-1].ref;
+    } else sel.innerHTML = '<option>Primero crea una cuenta</option>';
+    const none = !cuentas.length;
+    ['sel','bDep','bCon','bHack'].forEach(id=>$(id).disabled = none);
+    $('bCrear').disabled = cuentas.length>=4;
+    flashRef = flashField = null;
+  }
+  function explain(t, body, chips, warn){
+    paso++;
+    $('exp').innerHTML = '<div class="paso">Paso '+paso+'</div><h3>'+t+'</h3>'+body.map(p=>'<p>'+p+'</p>').join('')+
+      (warn?'<p class="warn">'+warn+'</p>':'')+'<div class="chips">'+chips.map(c=>'<span class="chip">'+c+'</span>').join('')+'</div>';
+  }
+  function add(lines){ hot = []; lines.forEach(l=>{ hot.push(main.length); main.push('    '+l); }); }
+  function out(t){ const d=document.createElement('div'); d.textContent=t; $('console').appendChild(d); $('console').scrollTop=1e9; }
+  const cur = () => cuentas.find(c=>c.ref===$('sel').value);
+
+  function reset(){
+    main = START.slice(); hot=[1]; classHot=[]; cuentas=[]; paso=0;
+    $('console').innerHTML=''; out('Hola Mundo, bienvenido a MiniBanco POO');
+    explain('El programa arrancó',
+      ['La JVM buscó el método <b>main</b> y ejecutó la primera línea: imprimir un saludo en la consola. Todavía no existe ninguna cuenta.',
+       'Abajo a la derecha del código está <b>Cuenta.java</b>: es la <b>clase</b>, el molde. Describe qué datos tendrá cada cuenta y qué podrá hacer, pero por sí sola no es ninguna cuenta.'],
+      ['Clase','Método main','JVM']);
+    render();
+  }
+
+  $('bCrear').onclick = () => {
+    let t = $('titular').value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g,'').trim().slice(0,20);
+    if(!t){ explain('Falta el titular',['Escribe un nombre (solo letras) para el atributo <b>titular</b>.'],['String']); render(); return; }
+    const n = cuentas.length+1, ref='c'+n;
+    cuentas.push({ref, titular:t, numero:n, saldo:0, hash:(Math.random()*0xfffff|0).toString(16)});
+    add(['', 'Cuenta '+ref+' = new Cuenta();', ref+'.titular = "'+t+'";', ref+'.numero = '+n+';']); hot.shift();
+    classHot=['cls','at','an','as'];
+    flashRef=ref; flashField='titular';
+    $('sel').value = ref;
+    explain('Nació el objeto '+ref,
+      ['<b>new Cuenta()</b> le pidió a la JVM espacio en memoria y armó un objeto siguiendo el molde de la clase. Es una <b>instancia</b>: una cuenta concreta.',
+       'Sus atributos arrancan con valores por defecto (<b>saldo</b> en 0.0) y luego se les asignan el titular y el número. Esos valores son el <b>estado</b> del objeto'+(n>1?', y no se mezclan con los de las otras cuentas aunque vengan de la misma clase.':'.')],
+      n>1?['Objeto','Instancias múltiples','Estado']:['Objeto','Instancia','new','Estado']);
+    render();
+  };
+
+  $('bDep').onclick = () => {
+    const c = cur(), m = parseFloat($('monto').value);
+    if(isNaN(m)){ explain('Monto inválido',['El parámetro <b>monto</b> es de tipo <b>double</b>: necesita un número.'],['Tipos de datos']); render(); return; }
+    const antes = c.saldo; c.saldo = +(c.saldo + m).toFixed(2);
+    add([c.ref+'.depositar('+jd(m)+');']); classHot=['md'];
+    flashRef=c.ref; flashField='saldo';
+    explain('Se invocó un método',
+      ['El objeto <b>'+c.ref+'</b> recibió el mensaje <b>depositar</b> con el parámetro <b>monto = '+jd(m)+'</b>. Dentro del método se ejecutó <b>saldo = saldo + monto</b>.',
+       'El saldo pasó de <b>'+jd(antes)+'</b> a <b>'+jd(c.saldo)+'</b>. El método es <b>void</b>: cambia el estado del objeto pero no regresa ningún valor.'],
+      ['Invocar métodos','Parámetros','double','Estado'],
+      m<0?'Java aceptó un depósito negativo y le restó dinero a la cuenta. La clase todavía no valida nada: en la fase 3 lo frenamos con un if.':null);
+    render();
+  };
+
+  $('bCon').onclick = () => {
+    const c = cur();
+    add(['double s = '+c.ref+'.consultarSaldo();','System.out.println('+c.ref+'.titular + " tiene $" + s);']);
+    classHot=['mc'];
+    out(c.titular+' tiene $'+jd(c.saldo));
+    explain('Un método que regresa un valor',
+      ['<b>consultarSaldo()</b> no recibe parámetros, pero su tipo es <b>double</b>: con <b>return</b> le devuelve el saldo a quien lo llamó, que lo guarda en la variable <b>s</b>.',
+       'Después, <b>System.out.println</b> lo imprime en la consola de abajo. Este es el <b>valor de retorno</b>.'],
+      ['Valor de retorno','return','Salida estándar']);
+    render();
+  };
+
+  $('bHack').onclick = () => {
+    const c = cur(); c.saldo = 1000000;
+    add([c.ref+'.saldo = 1000000;']); classHot=['as'];
+    flashRef=c.ref; flashField='saldo';
+    explain('Alguien se saltó las reglas',
+      ['El programa escribió directo en el atributo <b>saldo</b> sin pasar por ningún método, y Java lo permitió.'],
+      ['Encapsulación (fase 2)'],
+      'En un banco real esto sería un fraude. El principio de <b>encapsulación</b> lo evita: en la fase 2 el atributo será <b>private</b> y solo se podrá tocar mediante métodos.');
+    render();
+  };
+
+  $('bReset').onclick = reset;
+  $('sel').onchange = render;
+  reset();
+})();
+</script>
+</body>
+</html>
