@@ -35,13 +35,15 @@ header.top h1{margin:0;font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.1;letter
 header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .fase{font:600 .85rem "IBM Plex Mono",monospace;border:1.5px solid var(--ink);padding:6px 10px;border-radius:4px;white-space:nowrap}
 .back{font-size:.9rem;text-decoration:none}
+@media (max-width:720px){.fase{white-space:normal}}
 
-.grid{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-areas:"acc code exp" "acc code mem";align-items:start}
+.grid{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-rows:auto 1fr;grid-template-areas:"acc code exp" "acc code mem";align-items:start}
+@media (min-width:1101px){.grid.wide{grid-template-columns:390px minmax(0,1fr) 340px}}
 @media (max-width:1100px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"acc exp" "code mem"}}
-@media (max-width:720px){.grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"acc" "exp" "mem" "code"}}
+@media (max-width:720px){.grid{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"acc" "exp" "mem" "code"}}
 .acc{grid-area:acc}.code{grid-area:code}.mem{grid-area:mem}.exp{grid-area:exp}
 
-section.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+section.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
 h2{font-size:1.05rem;margin:0 0 12px;letter-spacing:-.01em}
 h2 small{display:block;font-weight:400;color:var(--muted);font-size:.85rem;margin-top:2px}
 
@@ -52,54 +54,82 @@ button.alt{background:transparent;color:var(--ink)}
 button.risk{background:transparent;color:var(--danger);border-color:var(--danger)}
 button:disabled{opacity:.4;cursor:not-allowed}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--vault);outline-offset:2px}
+button code,label code{font:600 .88em "IBM Plex Mono",monospace}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sep{border:0;border-top:1px dashed var(--line);margin:18px 0 6px}
 .hint{font-size:.82rem;color:var(--muted);margin:6px 0 0}
+.formas{border:1px solid var(--line);border-radius:8px;padding:4px 12px 12px;margin-top:8px}
+.formas h3{font-size:.92rem;margin:8px 0 0}
 
 /* Código */
-.codewin{background:var(--code);color:var(--code-ink);border-radius:8px;overflow:auto;font:13.5px/1.6 "IBM Plex Mono",ui-monospace,Consolas,monospace;margin-bottom:16px}
-.codewin .tab{font-size:.75rem;color:var(--code-dim);padding:8px 14px;border-bottom:1px solid #1E3247}
+.codewin{position:relative;max-height:min(640px,75vh);background:var(--code);color:var(--code-ink);border-radius:8px;overflow:auto;font:13.5px/1.6 "IBM Plex Mono",ui-monospace,Consolas,monospace;margin-bottom:16px}
+.codewin .tab{position:sticky;top:0;left:0;z-index:1;background:var(--code);font-size:.75rem;color:var(--code-dim);padding:8px 14px;border-bottom:1px solid #1E3247}
 .codewin pre{margin:0;padding:10px 0;min-width:max-content}
 .ln{display:block;padding:0 14px 0 0;transition:background .25s}
 .ln .n{display:inline-block;width:3.2em;text-align:right;padding-right:1em;color:var(--code-dim);user-select:none}
 .ln.on{background:rgba(244,201,93,.22);box-shadow:inset 3px 0 0 #F4C95D}
+.ln.on2{background:rgba(127,196,242,.18);box-shadow:inset 3px 0 0 #7FC4F2}
+.ln.err{background:rgba(224,122,112,.28);box-shadow:inset 3px 0 0 #E07A70}
+.ln.skip{background:rgba(224,122,112,.10);box-shadow:inset 3px 0 0 #E07A70;opacity:.55}
+.ln.cur{background:rgba(244,201,93,.40);box-shadow:inset 5px 0 0 #F4C95D}
 .kw{color:var(--kw)}.st{color:var(--str)}.nu{color:var(--num)}.cm{color:var(--code-dim);font-style:italic}
+.leyenda{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin:-6px 0 12px}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
 /* Memoria */
 .heap{display:grid;gap:12px}
 .empty{color:var(--muted);font-size:.92rem;border:1.5px dashed var(--line);border-radius:8px;padding:18px;text-align:center}
 .obj{border:1.5px solid var(--vault);border-radius:8px;overflow:hidden;animation:born .5s ease-out}
 .obj.sel{box-shadow:0 0 0 3px color-mix(in srgb,var(--vault) 30%,transparent)}
+.obj.gone{border-style:dashed;opacity:.55}
 .obj .hd{display:flex;justify-content:space-between;gap:8px;background:var(--vault);color:var(--panel);padding:6px 10px;font:600 .85rem "IBM Plex Mono",monospace}
 .obj .hd span:last-child{opacity:.8;font-weight:400}
 .obj table{width:100%;border-collapse:collapse;font:.85rem "IBM Plex Mono",monospace}
 .obj td{padding:6px 10px;border-top:1px solid var(--line)}
 .obj td.t{color:var(--muted);width:4.5em}
 .obj td.v{text-align:right;font-weight:600}
+.obj td.lk{width:1.6em;padding-right:0;font-size:.8rem}
 .obj tr.flash td{animation:flash 1.2s ease-out}
 @keyframes born{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 @keyframes flash{0%{background:var(--exec)}100%{background:transparent}}
 .refnote{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+.vars{border:1.5px solid var(--line);border-radius:8px;font:.85rem "IBM Plex Mono",monospace;overflow:hidden}
+.vars .vh{font:600 .78rem "IBM Plex Sans",sans-serif;color:var(--muted);padding:6px 10px;background:color-mix(in srgb,var(--line) 45%,transparent)}
+.vars .var{display:flex;gap:8px;align-items:baseline;padding:5px 10px;border-top:1px solid var(--line)}
+.vars .var.sel{background:color-mix(in srgb,var(--vault) 14%,transparent)}
+.vars .var.flash{animation:flash 1.2s ease-out}
+.vars .vt{color:var(--muted)}
+.vars .vv{margin-left:auto;font-weight:600;color:var(--vault)}
 
 /* Explicación */
 .exp h3{margin:0 0 6px;font-size:1.1rem}
 .exp p{margin:0 0 10px}
+.exp ol{margin:0 0 10px;padding-left:1.3em}
+.exp code{font:600 .88em "IBM Plex Mono",monospace}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chip{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid var(--mint);color:var(--mint);font-weight:600}
 .warn{border-left:4px solid var(--danger);padding:8px 12px;background:color-mix(in srgb,var(--danger) 10%,transparent);border-radius:0 6px 6px 0;font-size:.92rem}
 .paso{font:600 .78rem "IBM Plex Mono",monospace;color:var(--muted);margin-bottom:6px}
-.console{background:var(--code);color:#B8F2C8;font:13px/1.5 "IBM Plex Mono",monospace;border-radius:8px;padding:10px 12px;min-height:3.5em;max-height:160px;overflow:auto;margin-top:12px}
+.console{background:var(--code);color:#B8F2C8;font:13px/1.5 "IBM Plex Mono",monospace;border-radius:8px;padding:10px 12px;min-height:3.5em;max-height:220px;overflow:auto;margin-top:12px}
 .console div::before{content:"> ";color:var(--code-dim)}
+.console div.err{color:#FFB4A8;white-space:pre;margin:2px 0}
+.console div.err::before{content:none}
 
 /* Ruta */
 .ruta{margin-top:28px}
 .ruta ol{list-style:none;padding:0;margin:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));counter-reset:f}
-.ruta li{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel);counter-increment:f;opacity:.6}
-.ruta li::before{content:"Fase " counter(f);display:block;font:600 .78rem "IBM Plex Mono",monospace;color:var(--muted)}
-.ruta li.now{opacity:1;border:2px solid var(--mint)}
-.ruta li b{display:block;margin:2px 0}
-.ruta li span{font-size:.85rem;color:var(--muted)}
+.ruta li{counter-increment:f;display:flex}
+.ruta .card{display:block;width:100%;margin:0;text-align:left;font:inherit;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel)}
+.ruta .card::before{content:"Fase " counter(f);display:block;font:600 .78rem "IBM Plex Mono",monospace;color:var(--muted)}
+.ruta .card:not(:disabled):hover{border-color:var(--mint)}
+.ruta .card:disabled{opacity:.6;cursor:not-allowed}
+.ruta .card.now{border:2px solid var(--mint)}
+.ruta .card b{display:block;margin:2px 0}
+.ruta .card span{font-size:.85rem;color:var(--muted)}
+.ruta .card em{display:block;font-style:normal;font-size:.75rem;font-weight:600;color:var(--mint);margin-top:6px}
+.ruta .card:disabled em{color:var(--muted)}
 footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -111,47 +141,87 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
       <h1>MiniBanco POO</h1>
       <p>Cada clic ejecuta código Java real y te muestra qué línea corrió, qué objeto existe en memoria y por qué.</p>
     </div>
-    <div class="fase">Fase 1 · Clases, objetos y métodos</div>
+    <div class="fase" id="faseLbl">Fase 1 · Clases, objetos y métodos</div>
   </header>
 
-  <div class="grid">
+  <div class="grid" id="grid">
     <!-- Acciones -->
     <section class="box acc" aria-labelledby="h-acc">
-      <h2 id="h-acc">Acciones<small>Lo que haría el usuario del banco</small></h2>
-      <label for="titular">Titular de la cuenta</label>
-      <input id="titular" maxlength="20" value="Rick" autocomplete="off">
-      <button id="bCrear">Crear cuenta</button>
-      <p class="hint">Crea hasta 4 cuentas. Cada una es un objeto distinto hecho con la misma clase.</p>
+      <h2 id="h-acc">Acciones<small id="accSub">Lo que haría el usuario del banco</small></h2>
 
-      <hr class="sep">
-      <label for="sel">Cuenta</label>
-      <select id="sel" disabled><option>Primero crea una cuenta</option></select>
-      <label for="monto">Monto (double)</label>
-      <input id="monto" type="number" step="0.01" value="1500.50" inputmode="decimal">
-      <div class="row2">
-        <button id="bDep" disabled>Depositar</button>
-        <button id="bCon" class="alt" disabled>Consultar saldo</button>
+      <!-- ===== Fase 1 ===== -->
+      <div id="acc1" hidden>
+        <label for="titular">Titular de la cuenta</label>
+        <input id="titular" maxlength="20" value="Rick" autocomplete="off">
+        <button id="bCrear">Crear cuenta</button>
+        <p class="hint">Crea hasta 4 cuentas. Cada una es un objeto distinto hecho con la misma clase.</p>
+
+        <hr class="sep">
+        <label for="sel">Cuenta</label>
+        <select id="sel" disabled><option>Primero crea una cuenta</option></select>
+        <label for="monto">Monto (double)</label>
+        <input id="monto" type="number" step="0.01" value="1500.50" inputmode="decimal">
+        <div class="row2">
+          <button id="bDep" disabled>Depositar</button>
+          <button id="bCon" class="alt" disabled>Consultar saldo</button>
+        </div>
+
+        <hr class="sep">
+        <label>Experimento</label>
+        <button id="bHack" class="risk" disabled>Cambiar el saldo sin método</button>
+        <p class="hint">Escribe directo en el atributo. Hoy funciona… y eso es un problema que resolvemos en la fase 2.</p>
+        <button id="bReset" class="alt">Reiniciar</button>
       </div>
 
-      <hr class="sep">
-      <label>Experimento</label>
-      <button id="bHack" class="risk" disabled>Cambiar el saldo sin método</button>
-      <p class="hint">Escribe directo en el atributo. Hoy funciona… y eso es un problema que resolvemos en la fase 2.</p>
-      <button id="bReset" class="alt">Reiniciar</button>
+      <!-- ===== Fase 2 ===== -->
+      <div id="acc2" hidden>
+        <label for="f2Tit">Titular (String)</label>
+        <input id="f2Tit" maxlength="20" value="Rick" autocomplete="off">
+        <label for="f2Ini">Saldo inicial (double, opcional)</label>
+        <input id="f2Ini" type="number" step="0.01" placeholder="Vacío = constructor de 2 parámetros" inputmode="decimal">
+        <button id="f2Crear">Crear cuenta</button>
+        <p class="hint">Vacío usa <code>Cuenta(titular, numero)</code>. Con valor usa <code>Cuenta(titular, numero, saldoInicial)</code>. Máximo 4 objetos.</p>
+
+        <hr class="sep">
+        <label for="f2Sel">Variable de referencia</label>
+        <select id="f2Sel" disabled><option>Primero crea una cuenta</option></select>
+        <div class="row2">
+          <button id="f2Con" class="alt" disabled>Consultar (getters)</button>
+          <button id="f2Alias" class="alt" disabled>c3 = c1</button>
+        </div>
+
+        <div class="formas">
+          <h3>Formas de alterar un objeto</h3>
+          <button id="f2A" class="alt" disabled>a) Al nacer: constructor</button>
+          <label for="f2Nuevo">Nuevo titular</label>
+          <input id="f2Nuevo" maxlength="20" value="Ana Sofía" autocomplete="off">
+          <button id="f2B" class="alt" disabled>b) <code>setTitular()</code></button>
+          <label for="f2Monto">Monto (double)</label>
+          <input id="f2Monto" type="number" step="0.01" value="1500.50" inputmode="decimal">
+          <button id="f2C" class="alt" disabled>c) <code>depositar()</code></button>
+          <button id="f2D" class="risk" disabled>d) Escribir <code>saldo</code> directo</button>
+        </div>
+
+        <hr class="sep">
+        <label>Experimento</label>
+        <button id="f2SinArgs" class="risk">Intentar <code>new Cuenta()</code> sin argumentos</button>
+        <button id="f2Reset" class="alt">Reiniciar</button>
+      </div>
     </section>
 
     <!-- Código -->
     <section class="box code" aria-labelledby="h-code">
       <h2 id="h-code">El código<small>Resaltado: lo que se acaba de ejecutar</small></h2>
-      <div class="codewin"><div class="tab">MiniBanco.java · método main</div><pre id="mainCode"></pre></div>
-      <div class="codewin"><div class="tab">Cuenta.java · la clase (el molde)</div><pre id="classCode"></pre></div>
+      <div class="leyenda" id="leyenda" hidden></div>
+      <div class="codewin"><div class="tab" id="tabMain">MiniBanco.java · método main</div><pre id="mainCode"></pre></div>
+      <div class="codewin"><div class="tab" id="tabClass">Cuenta.java · la clase (el molde)</div><pre id="classCode"></pre></div>
     </section>
 
     <!-- Memoria -->
     <section class="box mem" aria-labelledby="h-mem">
-      <h2 id="h-mem">La memoria<small>Objetos vivos en el heap de la JVM</small></h2>
+      <h2 id="h-mem">La memoria<small id="memSub">Objetos vivos en el heap de la JVM</small></h2>
       <div class="heap" id="heap"></div>
-      <p class="refnote"><b>c1</b>, <b>c2</b>… no son los objetos: son variables de referencia que apuntan a ellos.</p>
+      <p class="refnote" id="refnote"></p>
     </section>
 
     <!-- Explicación -->
@@ -164,25 +234,87 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
 
   <section class="ruta" aria-labelledby="h-ruta">
     <h2 id="h-ruta">Cómo va a crecer esta app</h2>
-    <ol>
-      <li class="now"><b>Clases y objetos</b><span>Cuenta, new, depositar(), consultarSaldo()</span></li>
-      <li><b>Encapsulación</b><span>Constructor, private y getters</span></li>
-      <li><b>Control de flujo</b><span>if para retiros, menú con switch, ciclos</span></li>
-      <li><b>Arreglos</b><span>Historial de movimientos y matriz por mes</span></li>
-      <li><b>Herencia y polimorfismo</b><span>CuentaAhorro y CuentaCheques</span></li>
-      <li><b>Excepciones e hilos</b><span>Saldo insuficiente y dos cajeros a la vez</span></li>
+    <ol id="ruta">
+      <li><button class="card" data-f="1"><b>Clases y objetos</b><span>Cuenta, new, depositar(), consultarSaldo()</span><em></em></button></li>
+      <li><button class="card" data-f="2"><b>Construcción y alteración de objetos</b><span>Constructores, this, private, getters y setters</span><em></em></button></li>
+      <li><button class="card" data-f="3"><b>Control de flujo</b><span>if/else, menú con switch, ciclos y Scanner</span><em></em></button></li>
+      <li><button class="card" data-f="4"><b>Arreglos</b><span>Historial de movimientos y matriz por mes</span><em></em></button></li>
+      <li><button class="card" data-f="5"><b>Herencia y polimorfismo</b><span>CuentaAhorro y CuentaCheques</span><em></em></button></li>
+      <li><button class="card" data-f="6"><b>Excepciones e hilos</b><span>Saldo insuficiente y dos cajeros a la vez</span><em></em></button></li>
     </ol>
   </section>
 
   <footer>
     Proyecto de la materia Programación orientada a objetos, Licenciatura en Inteligencia Artificial (UTEL). Erick Domínguez Del Prado, 2026.
-    El código Java original está en la carpeta <a href="java/">java/</a> y se abre en BlueJ.
+    El código Java original de cada fase está en la carpeta <a href="https://github.com/Erickddp/LIC_IA/tree/main/poo/java">poo/java/</a> (fase1, fase2…) y se abre en BlueJ.
   </footer>
 </div>
 
 <script>
 (function(){
   const $ = s => document.getElementById(s);
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const KW = /("[^"]*")|\b(public|private|class|void|double|int|boolean|return|new|static|String|this|if|else|for|while|do|switch|case|break|default|null|true|false|import)\b|\b(\d+(?:\.\d+)?)\b/g;
+  function color(line){
+    let h = esc(line);
+    if(/^\s*(\/\/|\/\*|\*)/.test(line)) return '<span class="cm">'+h+'</span>';
+    let tail = '';
+    const ci = h.indexOf('//');
+    if(ci>=0 && (h.slice(0,ci).split('"').length%2===1)){ tail = '<span class="cm">'+h.slice(ci)+'</span>'; h = h.slice(0,ci); }
+    return h.replace(KW,(m,str,kw,num) => str ? '<span class="st">'+str+'</span>' : kw ? '<span class="kw">'+kw+'</span>' : '<span class="nu">'+num+'</span>') + tail;
+  }
+  // Pinta un archivo de código; cls(i) regresa la clase extra de la línea i (0-based)
+  function codeHTML(lines, cls){
+    return lines.map((l,i)=>{ const c = cls(i); return '<span class="ln'+(c?' '+c:'')+'"><span class="n">'+(i+1)+'</span>'+(color(l)||' ')+'</span>'; }).join('');
+  }
+  // Pinta el código en <pre id> y desplaza su ventana hasta la primera línea marcada
+  function paint(id, html){
+    const pre = $(id), box = pre.parentElement;
+    pre.innerHTML = html;
+    const ln = pre.querySelector('.ln.cur, .ln.err, .ln.on');
+    if(ln && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, ln.offsetTop - box.clientHeight/3);
+  }
+  // Busca la línea cuyo texto (sin sangría) es exactamente `text`
+  function find(L, text, from){ for(let i=from||0;i<L.length;i++) if(L[i].trim()===text) return i; throw new Error('Línea no encontrada: '+text); }
+  // Índices desde el encabezado hasta la llave que cierra su bloque
+  function block(L, header, from){
+    const h = find(L, header, from); let d = 0, open = false; const out = [];
+    for(let j=h;j<L.length;j++){
+      out.push(j);
+      for(const ch of L[j].replace(/"[^"]*"/g,'')){ if(ch==='{'){d++;open=true;} else if(ch==='}') d--; }
+      if(open && d===0) return out;
+    }
+    return out;
+  }
+  // Double.toString de Java (formato que imprime println)
+  function jDouble(x){
+    if(Number.isNaN(x)) return 'NaN';
+    if(x===Infinity) return 'Infinity';
+    if(x===-Infinity) return '-Infinity';
+    if(x===0) return Object.is(x,-0) ? '-0.0' : '0.0';
+    const a = Math.abs(x);
+    if(a>=1e-3 && a<1e7){ const s = String(x); return s.includes('.') ? s : s+'.0'; }
+    let [m,e] = x.toExponential().split('e'); if(!m.includes('.')) m += '.0';
+    return m+'E'+(+e);
+  }
+  const hash = () => (0x10000 + (Math.random()*0xeffff|0)).toString(16);
+  function out(t, cls){ const d=document.createElement('div'); d.textContent=t; if(cls) d.className=cls; $('console').appendChild(d); $('console').scrollTop=1e9; }
+  function makeExplain(){
+    let paso = 0;
+    const f = (t, body, chips, warn) => {
+      paso++;
+      $('exp').innerHTML = '<div class="paso">Paso '+paso+'</div><h3>'+t+'</h3>'+body.map(p=> /^<(ol|ul)/.test(p) ? p : '<p>'+p+'</p>').join('')+
+        (warn?'<p class="warn">'+warn+'</p>':'')+'<div class="chips">'+chips.map(c=>'<span class="chip">'+c+'</span>').join('')+'</div>';
+    };
+    f.reset = () => { paso = 0; };
+    return f;
+  }
+  const limpiaNombre = v => v.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g,'').replace(/\s+/g,' ').trim().slice(0,20);
+
+  /* =====================================================================
+     FASE 1 · Clases, objetos y métodos (sin cambios de comportamiento)
+     ===================================================================== */
+  const F1 = (function(){
   const CLASS = [
     ['public class Cuenta {','cls'],
     ['    // atributos: el estado de cada objeto',''],
@@ -205,14 +337,6 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
   ];
   let main, hot, classHot, cuentas, paso, flashRef, flashField;
 
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  function color(line){
-    let h = esc(line);
-    if(/^\s*\/\//.test(line)) return '<span class="cm">'+h+'</span>';
-    h = h.replace(/("[^"]*")|\b(public|class|void|double|int|return|new|static|String)\b|\b(\d+(?:\.\d+)?)\b/g,
-      (m,str,kw,num) => str ? '<span class="st">'+str+'</span>' : kw ? '<span class="kw">'+kw+'</span>' : '<span class="nu">'+num+'</span>');
-    return h;
-  }
   const jd = x => Number.isInteger(x) ? x.toFixed(1) : String(+x.toFixed(2));
 
   function render(){
@@ -245,7 +369,6 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
       (warn?'<p class="warn">'+warn+'</p>':'')+'<div class="chips">'+chips.map(c=>'<span class="chip">'+c+'</span>').join('')+'</div>';
   }
   function add(lines){ hot = []; lines.forEach(l=>{ hot.push(main.length); main.push('    '+l); }); }
-  function out(t){ const d=document.createElement('div'); d.textContent=t; $('console').appendChild(d); $('console').scrollTop=1e9; }
   const cur = () => cuentas.find(c=>c.ref===$('sel').value);
 
   function reset(){
@@ -313,7 +436,355 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
 
   $('bReset').onclick = reset;
   $('sel').onchange = render;
-  reset();
+  return {
+    tabs:['MiniBanco.java · método main','Cuenta.java · la clase (el molde)'],
+    refnote:'<b>c1</b>, <b>c2</b>… no son los objetos: son variables de referencia que apuntan a ellos.',
+    start: reset
+  };
+  })();
+
+  /* =====================================================================
+     FASE 2 · Construcción y alteración de objetos
+     El texto de CUENTA2 es idéntico a poo/java/fase2/Cuenta.java
+     ===================================================================== */
+  const F2 = (function(){
+  const CL = `/**
+ * MiniBanco POO - Fase 2: construcción y alteración de objetos
+ * Los atributos son private: solo esta clase puede tocarlos.
+ *
+ * @author Erick Domínguez Del Prado
+ * @version Fase 2 - noviembre 2026
+ */
+public class Cuenta
+{
+    // Atributos privados: el estado de cada objeto
+    private String titular;
+    private int numero;
+    private double saldo;
+
+    // Constructor de 2 parámetros: la cuenta nace con saldo 0
+    public Cuenta(String titular, int numero)
+    {
+        this.titular = titular;
+        this.numero = numero;
+        this.saldo = 0;
+    }
+
+    // Constructor de 3 parámetros: reutiliza el de 2 con this(...)
+    public Cuenta(String titular, int numero, double saldoInicial)
+    {
+        this(titular, numero);
+        this.saldo = saldoInicial;
+    }
+
+    // Getters: leer el estado sin poder cambiarlo
+    public String getTitular()
+    {
+        return titular;
+    }
+
+    public int getNumero()
+    {
+        return numero;
+    }
+
+    public double getSaldo()
+    {
+        return saldo;
+    }
+
+    // Setter solo del titular: numero y saldo no tienen setter
+    public void setTitular(String titular)
+    {
+        this.titular = titular;
+    }
+
+    // Única forma de cambiar el saldo. Aún no valida (fase 3).
+    public void depositar(double monto)
+    {
+        saldo = saldo + monto;
+    }
+}`.split('\n');
+  const R = {
+    attrs: [find(CL,'private String titular;'), find(CL,'private int numero;'), find(CL,'private double saldo;')],
+    saldo: find(CL,'private double saldo;'),
+    c2: block(CL,'public Cuenta(String titular, int numero)'),
+    c3: block(CL,'public Cuenta(String titular, int numero, double saldoInicial)'),
+    gT: block(CL,'public String getTitular()'),
+    gN: block(CL,'public int getNumero()'),
+    gS: block(CL,'public double getSaldo()'),
+    sT: block(CL,'public void setTitular(String titular)'),
+    dep: block(CL,'public void depositar(double monto)')
+  };
+  const n1 = i => i+1;                      // índice → número de línea
+  const rango = a => n1(a[0])+'–'+n1(a[a.length-1]);
+  const HEAD = ['public class MiniBanco','{','    public static void main(String[] args)','    {','        System.out.println("MiniBanco POO - Fase 2");'];
+  const TAIL = ['    }','}'];
+  const MAXOBJ = 4, MAXVAR = 6;
+  const explain = makeExplain();
+  let body, hot, cHot, cAlt, errLine, objs, vars, flash;
+
+  const lineIdx = k => HEAD.length + k;     // índice en el archivo mostrado de la línea k del cuerpo
+  function add(lines){
+    errLine = null; hot = [];
+    lines.forEach(l=>{ hot.push(lineIdx(body.length)); body.push('        '+l); });
+    return hot[hot.length-1];
+  }
+  const selVar = () => vars.find(v=>v.name===$('f2Sel').value);
+  const nombresDe = o => vars.filter(v=>v.obj===o).map(v=>v.name);
+  const otros = (o, yo) => nombresDe(o).filter(n=>n!==yo);
+  const lista = a => a.length<2 ? a.join('') : a.slice(0,-1).join(', ')+' y '+a[a.length-1];
+
+  function render(){
+    const file = HEAD.concat(body, errLine?['        '+errLine]:[], TAIL);
+    const errI = errLine ? HEAD.length+body.length : -1;
+    paint('mainCode', codeHTML(file, i => i===errI ? 'err' : hot.includes(i) ? 'on' : ''));
+    paint('classCode', codeHTML(CL, i => cHot.includes(i) ? 'on' : cAlt.includes(i) ? 'on2' : ''));
+
+    const sv = selVar();
+    let h = '';
+    if(!objs.length) h = '<div class="empty">La memoria está vacía. Crea una cuenta para ver nacer tu primer objeto.</div>';
+    else {
+      h += '<div class="vars"><div class="vh">Variables de referencia (en main)</div>'+vars.map(v=>
+        '<div class="var'+(sv===v?' sel':'')+(flash.v===v.name?' flash':'')+'"><span class="vt">Cuenta</span><b>'+v.name+'</b><span class="vv">→ @'+v.obj.hash+'</span></div>').join('')+'</div>';
+      h += objs.map(o=>{
+        const f = k => (flash.o===o && flash.f.includes(k)) ? ' class="flash"' : '';
+        const lk = '<td class="lk" title="private: solo la clase Cuenta puede tocarlo">🔒</td>';
+        return '<div class="obj'+(sv&&sv.obj===o?' sel':'')+'"><div class="hd"><span>Cuenta @'+o.hash+'</span><span>← '+nombresDe(o).join(', ')+'</span></div><table>'+
+          '<tr'+f('titular')+'>'+lk+'<td class="t">String</td><td>titular</td><td class="v">"'+esc(o.titular)+'"</td></tr>'+
+          '<tr'+f('numero')+'>'+lk+'<td class="t">int</td><td>numero</td><td class="v">'+o.numero+'</td></tr>'+
+          '<tr'+f('saldo')+'>'+lk+'<td class="t">double</td><td>saldo</td><td class="v">'+jDouble(o.saldo)+'</td></tr></table></div>';
+      }).join('');
+    }
+    $('heap').innerHTML = h;
+
+    const sel = $('f2Sel'), cur = sel.value;
+    if(vars.length){
+      sel.innerHTML = vars.map(v=>{ const ot = otros(v.obj, v.name);
+        return '<option value="'+v.name+'">'+v.name+' · '+esc(v.obj.titular)+(ot.length?' (mismo objeto que '+ot.join(', ')+')':'')+'</option>'; }).join('');
+      sel.value = vars.some(v=>v.name===cur) ? cur : vars[vars.length-1].name;
+    } else sel.innerHTML = '<option>Primero crea una cuenta</option>';
+    const none = !vars.length;
+    ['f2Sel','f2Con','f2A','f2B','f2C','f2D'].forEach(id=>$(id).disabled = none);
+    $('f2Crear').disabled = objs.length>=MAXOBJ || vars.length>=MAXVAR;
+    $('f2Alias').disabled = none || vars.length>=MAXVAR;
+    const s2 = selVar();
+    $('f2Alias').textContent = s2 ? 'c'+(vars.length+1)+' = '+s2.name : 'c3 = c1';
+    flash = {o:null, f:[], v:null};
+  }
+
+  function reset(){
+    body=[]; hot=[HEAD.length-1]; cHot=[]; cAlt=[]; errLine=null; objs=[]; vars=[]; flash={o:null,f:[],v:null};
+    explain.reset();
+    $('console').innerHTML=''; out('MiniBanco POO - Fase 2');
+    explain('Fase 2: ¿cómo nace un objeto y cómo se le cambia?',
+      ['La pregunta de esta fase: <b>¿de qué manera se puede crear un objeto a partir de una clase y qué opciones hay para alterarlo?</b>',
+       'Mira <b>Cuenta.java</b>. Sus atributos ahora son <b>private</b>: solo el código escrito dentro de la clase Cuenta puede leerlos o escribirlos. Además tiene dos <b>constructores</b>: bloques especiales que se llaman igual que la clase, no tienen tipo de retorno y corren automáticamente cuando haces <b>new</b>.',
+       'Crea una cuenta. Si dejas vacío el saldo inicial, Java usará el constructor de 2 parámetros; si escribes un valor, el de 3.'],
+      ['private','Constructor','Encapsulación']);
+    render();
+  }
+
+  function compileError(lineText, msg, caretCol, extra){
+    errLine = lineText;
+    const num = HEAD.length + body.length + 1;
+    const src = '        '+lineText;
+    out('MiniBanco.java:'+num+': error: '+msg, 'err');
+    out(src, 'err');
+    out(' '.repeat(caretCol+8)+'^', 'err');
+    (extra||[]).forEach(t=>out(t,'err'));
+    out('1 error', 'err');
+    return num;
+  }
+
+  $('f2Crear').onclick = () => {
+    const t = limpiaNombre($('f2Tit').value);
+    if(!t){ explain('Falta el titular',['Escribe un nombre (solo letras) para el parámetro <b>titular</b>, que es un <b>String</b>.'],['String','Parámetros']); render(); return; }
+    const raw = $('f2Ini').value.trim();
+    const tres = raw!=='';
+    const ini = tres ? parseFloat(raw) : 0;
+    if(tres && !isFinite(ini)){ explain('Saldo inicial inválido',['El tercer parámetro, <b>saldoInicial</b>, es <b>double</b>: necesita un número. Déjalo vacío para usar el constructor de 2 parámetros.'],['double','Parámetros']); render(); return; }
+    const numero = objs.length+1, name = 'c'+(vars.length+1);
+    const o = {titular:t, numero, saldo: tres ? ini : 0, hash:hash()};
+    objs.push(o); vars.push({name, obj:o});
+    const args = '"'+t+'", '+numero+(tres?', '+jDouble(ini):'');
+    o.born = add(['', 'Cuenta '+name+' = new Cuenta('+args+');']); hot.shift();
+    o.ctor = tres ? 3 : 2;
+    $('f2Sel').innerHTML = '<option value="'+name+'"></option>'; $('f2Sel').value = name;
+    flash = {o, f:['titular','numero','saldo'], v:name};
+    if(!tres){
+      cHot = R.c2.slice(); cAlt = R.attrs.slice();
+      explain('Nació '+name+' con el constructor de 2 parámetros',
+        ['<b>new</b> reservó memoria para un objeto nuevo. Antes de correr cualquier constructor, Java llena los atributos con sus <b>valores por defecto</b>: <code>null</code>, <code>0</code> y <code>0.0</code>.',
+         'La clase tiene dos constructores llamados <b>Cuenta</b>: eso es <b>sobrecarga</b>. Java elige el que coincide en número y tipo de argumentos. Le pasaste 2 (un String y un int), así que corrió <b>Cuenta(String titular, int numero)</b>, líneas '+rango(R.c2)+'.',
+         'Adentro, <code>this.titular = titular;</code>. El parámetro se llama igual que el atributo y lo tapa. <b>this</b> significa "este objeto": <code>this.titular</code> es el atributo y <code>titular</code> a secas es el parámetro. Sin this, <code>titular = titular;</code> se asignaría el parámetro a sí mismo y el atributo se quedaría en null.',
+         'Al final, la variable <b>'+name+'</b> guarda la referencia al objeto (su dirección, @'+o.hash+'). Los candados 🔒 de la memoria te recuerdan que los atributos son private.'],
+        ['Constructor','Sobrecarga','this','new','Valores por defecto']);
+    } else {
+      cHot = R.c3.slice(); cAlt = R.c2.slice();
+      const L3 = R.c3, L2 = R.c2;
+      explain('Nació '+name+' con el constructor de 3 parámetros',
+        ['<b>new</b> reservó memoria (atributos en <code>null</code>, <code>0</code>, <code>0.0</code>). Le pasaste 3 argumentos (String, int, double), así que por <b>sobrecarga</b> Java eligió <b>Cuenta(String titular, int numero, double saldoInicial)</b>.',
+         'Orden real de ejecución. En el código, amarillo es el constructor de 3 y azul el de 2:',
+         '<ol><li>Entra al constructor de 3 (línea '+n1(L3[0])+').</li>'+
+         '<li>Su primera instrucción, <code>this(titular, numero);</code> (línea '+n1(find(CL,'this(titular, numero);'))+'), <b>llama al constructor de 2</b>.</li>'+
+         '<li>Ese asigna titular, numero y <code>saldo = 0</code> (líneas '+n1(L2[2])+'–'+n1(L2[4])+').</li>'+
+         '<li>Regresa al de 3 y ejecuta <code>this.saldo = saldoInicial;</code> (línea '+n1(find(CL,'this.saldo = saldoInicial;'))+'): el saldo queda en '+jDouble(o.saldo)+'.</li></ol>',
+         'Fíjate en la diferencia: <code>this.titular</code> (con punto) es un atributo; <code>this(...)</code> (con paréntesis) es una llamada a otro constructor de la misma clase. Encadenar evita repetir código: la lógica común vive en un solo lugar. Por regla general, <code>this(...)</code> va como primera instrucción del constructor.'],
+        ['Sobrecarga','this(...)','Encadenamiento de constructores','Constructor'],
+        ini<0 ? 'El constructor tampoco valida el saldo inicial: aceptó un número negativo. En la fase 3 aprendemos a validar con if.' : null);
+    }
+    render();
+  };
+
+  $('f2Con').onclick = () => {
+    const v = selVar(), o = v.obj;
+    add(['System.out.println('+v.name+'.getTitular() + " tiene $" + '+v.name+'.getSaldo());']);
+    cHot = R.gT.concat(R.gS); cAlt = [];
+    out(o.titular+' tiene $'+jDouble(o.saldo));
+    explain('Leer el estado con getters',
+      ['Desde MiniBanco ya no puedes escribir <code>'+v.name+'.saldo</code>: el atributo es private. Para leerlo, la clase ofrece métodos públicos: <b>getTitular()</b> y <b>getSaldo()</b>. Se llaman <b>getters</b>: solo regresan el valor con <b>return</b>, no lo cambian.',
+       'Así la clase decide qué se puede ver y qué se puede cambiar. Hay getter de los tres atributos, pero setter solo del titular.'],
+      ['Getter','Encapsulación','Valor de retorno']);
+    render();
+  };
+
+  $('f2Alias').onclick = () => {
+    const v = selVar(), name = 'c'+(vars.length+1);
+    vars.push({name, obj:v.obj});
+    add(['', 'Cuenta '+name+' = '+v.name+';']); hot.shift();
+    cHot = []; cAlt = [];
+    flash = {o:null, f:[], v:name};
+    $('f2Sel').innerHTML = '<option value="'+name+'"></option>'; $('f2Sel').value = name;
+    explain(name+' = '+v.name+': dos variables, un solo objeto',
+      ['No hubo <b>new</b>, así que no nació ningún objeto. <code>Cuenta '+name+' = '+v.name+';</code> copió en '+name+' la <b>referencia</b> que guardaba '+v.name+': la dirección @'+v.obj.hash+'.',
+       'Mira la memoria: las dos variables apuntan al mismo recuadro. Si depositas usando '+name+', '+v.name+' verá el cambio, porque se altera el <b>objeto</b>, no la variable. Comparar <code>'+v.name+' == '+name+'</code> daría <b>true</b>: con objetos, == compara referencias, no contenidos.'],
+      ['Variable de referencia','Alias','==']);
+    render();
+  };
+
+  $('f2A').onclick = () => {
+    const v = selVar(), o = v.obj;
+    errLine = null; hot = [o.born];
+    cHot = o.ctor===3 ? R.c3.slice() : R.c2.slice(); cAlt = o.ctor===3 ? R.c2.slice() : [];
+    explain('Forma (a): al nacer, con el constructor',
+      ['La línea '+n1(o.born)+' (resaltada) ya corrió: ahí nació el objeto al que apunta '+v.name+', y el constructor de '+o.ctor+' parámetros le dio su estado inicial: titular, numero y saldo.',
+       'Es la única forma de fijar el <b>numero</b>: no existe setNumero(), así que una vez creada la cuenta su número ya no cambia. Si necesitas otro número, creas otro objeto con new.'],
+      ['Constructor','Estado inicial','Encapsulación']);
+    render();
+  };
+
+  $('f2B').onclick = () => {
+    const v = selVar(), o = v.obj, t = limpiaNombre($('f2Nuevo').value);
+    if(!t){ explain('Falta el nuevo titular',['Escribe un nombre (solo letras) para el parámetro de <b>setTitular</b>.'],['String','Parámetros']); render(); return; }
+    const antes = o.titular; o.titular = t;
+    add([v.name+'.setTitular("'+t+'");']);
+    cHot = R.sT.slice(); cAlt = [];
+    flash = {o, f:['titular'], v:null};
+    const ot = otros(o, v.name);
+    explain('Forma (b): con un setter',
+      ['<code>'+v.name+'.setTitular("'+esc(t)+'")</code> llamó a un método público que sí puede tocar el atributo private, porque está escrito dentro de la clase. Adentro, <code>this.titular = titular;</code> reemplazó "'+esc(antes)+'" por "'+esc(t)+'".',
+       'Un <b>setter</b> es una puerta controlada: la clase decide qué se puede cambiar. Por eso no hay setNumero() ni setSaldo(). El número se queda fijo y el saldo solo cambia con depositar().']
+       .concat(ot.length?['Como '+lista([v.name].concat(ot))+' apuntan al mismo objeto, todas ven el nuevo titular.']:[]),
+      ['Setter','this','Encapsulación'].concat(ot.length?['Alias']:[]));
+    render();
+  };
+
+  $('f2C').onclick = () => {
+    const v = selVar(), o = v.obj, m = parseFloat($('f2Monto').value);
+    if(!isFinite(m)){ explain('Monto inválido',['El parámetro <b>monto</b> es de tipo <b>double</b>: necesita un número.'],['double','Parámetros']); render(); return; }
+    const antes = o.saldo; o.saldo = o.saldo + m;
+    add([v.name+'.depositar('+jDouble(m)+');']);
+    cHot = R.dep.slice(); cAlt = [];
+    flash = {o, f:['saldo'], v:null};
+    const ot = otros(o, v.name);
+    explain('Forma (c): con un método de comportamiento',
+      ['<code>'+v.name+'.depositar('+jDouble(m)+')</code> ejecutó <code>saldo = saldo + monto;</code> dentro de la clase. El saldo pasó de <b>'+jDouble(antes)+'</b> a <b>'+jDouble(o.saldo)+'</b>.',
+       'Es la única puerta para cambiar el saldo, porque no hay setSaldo(). Así, todo movimiento de dinero pasa por un método que puede poner reglas.']
+       .concat(ot.length?['Depositaste usando <b>'+v.name+'</b>, pero <b>'+lista(ot)+'</b> también '+(ot.length>1?'ven':'ve')+' el saldo nuevo: hay un solo objeto en memoria. Se alteró el objeto, no la variable.']:[]),
+      ['Método','Parámetros','Estado'].concat(ot.length?['Alias','Variable de referencia']:[]),
+      m<0 ? 'Depositaste un monto negativo y Java lo aceptó: el saldo bajó. Esto aún no se valida; lo arreglamos en la fase 3 con un if.' : null);
+    render();
+  };
+
+  $('f2D').onclick = () => {
+    const v = selVar();
+    hot = [];
+    const txt = v.name+'.saldo = 1000000;';
+    const num = compileError(txt, 'saldo has private access in Cuenta', v.name.length);
+    cHot = [R.saldo]; cAlt = [];
+    explain('Forma (d): escribir el atributo directo… ya no compila',
+      ['Agregaste <code>'+txt+'</code> (línea '+num+', en rojo). En la fase 1 esto funcionaba. Ahora <b>javac</b>, el compilador, lo rechaza con el mensaje que ves en la consola: <b>saldo has private access in Cuenta</b>. El <code>^</code> señala el punto donde intentaste entrar al atributo.',
+       'Con un error de compilación no se genera el archivo .class y el programa no corre en absoluto. BlueJ te mostraría el mismo mensaje al compilar. Por eso la simulación quita esa línea en cuanto haces otra acción.',
+       '¿Y si solo quiero <i>ver</i> el saldo? Para eso existe <b>getSaldo()</b>: lectura sí, escritura no. Para cambiarlo está <b>depositar()</b>. Eso es <b>encapsulación</b>: el objeto protege su estado y solo se altera mediante sus métodos.'],
+      ['private','Encapsulación','Error de compilación','javac']);
+    render();
+  };
+
+  $('f2SinArgs').onclick = () => {
+    hot = [];
+    const name = 'c'+(vars.length+1);
+    const txt = 'Cuenta '+name+' = new Cuenta();';
+    const num = compileError(txt, 'no suitable constructor found for Cuenta(no arguments)', txt.indexOf('new'),
+      ['    constructor Cuenta.Cuenta(String,int) is not applicable',
+       '      (actual and formal argument lists differ in length)',
+       '    constructor Cuenta.Cuenta(String,int,double) is not applicable',
+       '      (actual and formal argument lists differ in length)']);
+    cHot = [R.c2[0], R.c3[0]]; cAlt = [];
+    explain('new Cuenta() sin argumentos: error de compilación',
+      ['En la fase 1, <code>new Cuenta()</code> funcionaba aunque la clase no tenía ningún constructor escrito. Java agregaba uno invisible, el <b>constructor por defecto</b>: sin parámetros y vacío.',
+       'Ese constructor por defecto <b>desaparece en cuanto defines uno propio</b>. Ahora Cuenta solo tiene <code>Cuenta(String, int)</code> y <code>Cuenta(String, int, double)</code> (líneas '+n1(R.c2[0])+' y '+n1(R.c3[0])+'). Ninguno acepta cero argumentos, y javac lo explica en la línea '+num+': <b>no suitable constructor found for Cuenta(no arguments)</b>. Luego lista los dos candidatos y por qué no sirven: las listas de argumentos tienen distinta longitud.',
+       'Es a propósito: una cuenta sin titular ni número no tiene sentido, así que la clase obliga a darlos al nacer. Si quisieras permitirlo, tendrías que escribir tú un <code>public Cuenta()</code>.'],
+      ['Constructor por defecto','Sobrecarga','Error de compilación','javac']);
+    render();
+  };
+
+  $('f2Reset').onclick = reset;
+  $('f2Sel').onchange = () => { errLine = null; render(); };
+  return {
+    tabs:['MiniBanco.java · lo que tus clics van escribiendo','Cuenta.java · constructores, private, getters y setter'],
+    refnote:'Las variables <b>c1</b>, <b>c2</b>… guardan referencias (flechas); los recuadros son los objetos. 🔒 = atributo <b>private</b>.',
+    start: reset
+  };
+  })();
+
+  /* =====================================================================
+     Navegación entre fases
+     ===================================================================== */
+  const FASES = {
+    1:{mod:F1, lbl:'Fase 1 · Clases, objetos y métodos'},
+    2:{mod:F2, lbl:'Fase 2 · Construcción y alteración de objetos'}
+  };
+  const ULTIMA = Math.max(...Object.keys(FASES).map(Number));
+  let actual = 0;
+  function ir(n, push){
+    if(!FASES[n]) n = ULTIMA;
+    actual = n;
+    const F = FASES[n];
+    Object.keys(FASES).forEach(k=>{ $('acc'+k).hidden = (+k!==n); });
+    $('faseLbl').textContent = F.lbl;
+    $('tabMain').textContent = F.mod.tabs[0];
+    $('tabClass').textContent = F.mod.tabs[1];
+    $('refnote').innerHTML = F.mod.refnote;
+    $('grid').classList.toggle('wide', !!F.mod.wide);
+    $('leyenda').hidden = true;
+    $('console').hidden = !!F.mod.noConsole;
+    document.querySelectorAll('#ruta .card').forEach(b=>{
+      const f = +b.dataset.f, hecho = !!FASES[f];
+      b.disabled = !hecho;
+      b.classList.toggle('now', f===n);
+      b.setAttribute('aria-current', f===n ? 'true' : 'false');
+      b.querySelector('em').textContent = f===n ? 'Estás aquí' : hecho ? 'Abrir esta fase' : 'Próximamente';
+    });
+    F.mod.start();
+    if(push) history.replaceState(null, '', '#fase'+n);
+  }
+  document.querySelectorAll('#ruta .card').forEach(b=>{
+    b.onclick = () => { if(!b.disabled){ ir(+b.dataset.f, true); window.scrollTo({top:0, behavior:'smooth'}); } };
+  });
+  window.addEventListener('hashchange', ()=>{ const m = location.hash.match(/^#fase(\d)$/); if(m && +m[1]!==actual) ir(+m[1], false); });
+  const m = location.hash.match(/^#fase(\d)$/);
+  ir(m ? +m[1] : ULTIMA, false);
 })();
 </script>
 </body>
