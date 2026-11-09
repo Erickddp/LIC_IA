@@ -114,6 +114,31 @@ button code,label code{font:600 .88em "IBM Plex Mono",monospace}
 .console div::before{content:"> ";color:var(--code-dim)}
 .console div.err{color:#FFB4A8;white-space:pre;margin:2px 0}
 .console div.err::before{content:none}
+.exp ol.notas{list-style:none;padding:0}
+.exp ol.notas li{margin:0 0 8px;font-size:.93rem}
+.lnref{display:inline-block;font:600 .72rem "IBM Plex Mono",monospace;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-right:6px}
+.cond{font:600 .85rem "IBM Plex Mono",monospace;background:var(--code);color:var(--code-ink);border-radius:6px;padding:8px 10px;margin:0 0 10px}
+.cond .t{color:#9BD8A8}.cond .f{color:#FFB4A8}
+.espera{border-left:4px solid var(--vault);padding:8px 12px;background:color-mix(in srgb,var(--vault) 10%,transparent);border-radius:0 6px 6px 0;font-size:.92rem}
+
+/* Fase 3: terminal y modos */
+.modo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modo button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.term{background:#0B0F14;color:#E6EDF3;font:12.5px/1.5 "IBM Plex Mono",ui-monospace,Consolas,monospace;border-radius:8px;padding:10px 12px;min-height:220px;max-height:360px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin-top:6px;border:1px solid #26384A;cursor:text}
+.term .in{color:#F4C95D}
+.term input{display:inline;width:14ch;max-width:100%;background:transparent;border:0;border-bottom:1px dashed #F4C95D;border-radius:0;color:#F4C95D;padding:0;font:inherit;margin:0}
+.term input:focus-visible{outline:none;border-bottom-style:solid}
+.estado{font-size:.82rem;margin:6px 0 0;color:var(--muted)}
+.estado b{color:var(--ink)}
+.buf{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.82rem;color:var(--muted)}
+.buf code{font:600 .9rem "IBM Plex Mono",monospace;color:var(--ink);background:color-mix(in srgb,var(--line) 45%,transparent);padding:1px 6px;border-radius:4px;white-space:pre}
+.vars.top{border-color:var(--vault)}
+.tabla{border:1.5px solid var(--mint);border-radius:8px;overflow:hidden}
+.tabla .vh{font:600 .78rem "IBM Plex Sans",sans-serif;color:var(--mint);padding:6px 10px}
+.tabla table{width:100%;border-collapse:collapse;font:.82rem "IBM Plex Mono",monospace}
+.tabla th,.tabla td{padding:5px 10px;border-top:1px solid var(--line);text-align:right}
+.tabla th{color:var(--muted);font-weight:600}
+.tabla th:first-child,.tabla td:first-child{text-align:center}
 
 /* Ruta */
 .ruta{margin-top:28px}
@@ -207,6 +232,26 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
         <button id="f2SinArgs" class="risk">Intentar <code>new Cuenta()</code> sin argumentos</button>
         <button id="f2Reset" class="alt">Reiniciar</button>
       </div>
+
+      <!-- ===== Fase 3 ===== -->
+      <div id="acc3" hidden>
+        <div class="modo" role="group" aria-label="Modo de ejecución">
+          <button id="f3Normal" class="alt" aria-pressed="true">Normal</button>
+          <button id="f3Paso" class="alt" aria-pressed="false">Paso a paso</button>
+        </div>
+        <button id="f3Sig" disabled>Siguiente ▸</button>
+        <label for="f3In">Terminal (como la de BlueJ): escribe y presiona Enter</label>
+        <form id="f3Form" autocomplete="off"><div class="term" id="f3Term"><span id="f3Out"></span><input id="f3In" spellcheck="false" aria-label="Entrada para Scanner"></div></form>
+        <p class="estado" id="f3Estado" aria-live="polite"></p>
+
+        <hr class="sep">
+        <label>Experimentos</label>
+        <button id="f3E1" class="risk">Retirar más que el saldo</button>
+        <button id="f3E2" class="risk">Depositar -100</button>
+        <button id="f3E3" class="risk">Teclear letras en vez de un número</button>
+        <p class="hint">Escriben por ti en la terminal cuando el programa pide la opción. Si aún no hay cuenta, primero crean una.</p>
+        <button id="f3Reset" class="alt">Reiniciar programa</button>
+      </div>
     </section>
 
     <!-- Código -->
@@ -271,14 +316,15 @@ footer{margin-top:32px;font-size:.85rem;color:var(--muted);border-top:1px solid 
   function paint(id, html){
     const pre = $(id), box = pre.parentElement;
     pre.innerHTML = html;
-    const ln = pre.querySelector('.ln.cur, .ln.err, .ln.on');
+    const ln = pre.querySelector('.ln.cur') || pre.querySelector('.ln.err') || pre.querySelector('.ln.on');
     if(ln && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, ln.offsetTop - box.clientHeight/3);
   }
   // Busca la línea cuyo texto (sin sangría) es exactamente `text`
   function find(L, text, from){ for(let i=from||0;i<L.length;i++) if(L[i].trim()===text) return i; throw new Error('Línea no encontrada: '+text); }
   // Índices desde el encabezado hasta la llave que cierra su bloque
-  function block(L, header, from){
-    const h = find(L, header, from); let d = 0, open = false; const out = [];
+  function block(L, header, from){ return blockAt(L, find(L, header, from)); }
+  function blockAt(L, h){
+    let d = 0, open = false; const out = [];
     for(let j=h;j<L.length;j++){
       out.push(j);
       for(const ch of L[j].replace(/"[^"]*"/g,'')){ if(ch==='{'){d++;open=true;} else if(ch==='}') d--; }
@@ -749,11 +795,699 @@ public class Cuenta
   })();
 
   /* =====================================================================
+     FASE 3 · Control de flujo y entrada por consola
+     CL3 y MB3 son idénticos a poo/java/fase3/Cuenta.java y MiniBanco.java.
+     El programa se simula con un generador: cada `yield` es una línea que
+     acaba de ejecutarse; {wait:true} significa que Scanner está bloqueado
+     esperando que el usuario escriba en la terminal.
+     ===================================================================== */
+  const F3 = (function(){
+  const CL3 = `/**
+ * MiniBanco POO - Fase 3: control de flujo
+ * depositar y retirar validan con if / else y regresan boolean.
+ *
+ * @author Erick Domínguez Del Prado
+ * @version Fase 3 - noviembre 2026
+ */
+public class Cuenta
+{
+    // Atributos privados: el estado de cada objeto
+    private String titular;
+    private int numero;
+    private double saldo;
+
+    // Constructor de 2 parámetros: la cuenta nace con saldo 0
+    public Cuenta(String titular, int numero)
+    {
+        this.titular = titular;
+        this.numero = numero;
+        this.saldo = 0;
+    }
+
+    // Constructor de 3 parámetros: reutiliza el de 2 con this(...)
+    public Cuenta(String titular, int numero, double saldoInicial)
+    {
+        this(titular, numero);
+        this.saldo = saldoInicial;
+    }
+
+    // Getters: leer el estado sin poder cambiarlo
+    public String getTitular()
+    {
+        return titular;
+    }
+
+    public int getNumero()
+    {
+        return numero;
+    }
+
+    public double getSaldo()
+    {
+        return saldo;
+    }
+
+    // Setter solo del titular: numero y saldo no tienen setter
+    public void setTitular(String titular)
+    {
+        this.titular = titular;
+    }
+
+    // Solo acepta montos positivos. Regresa true si se aplicó.
+    public boolean depositar(double monto)
+    {
+        if (monto > 0)
+        {
+            saldo = saldo + monto;
+            return true;
+        }
+        else
+        {
+            System.out.println("Monto inválido: el depósito debe ser mayor que 0.");
+            return false;
+        }
+    }
+
+    // Tres caminos: monto inválido, fondos insuficientes o retiro aplicado.
+    public boolean retirar(double monto)
+    {
+        if (monto <= 0)
+        {
+            System.out.println("Monto inválido: el retiro debe ser mayor que 0.");
+            return false;
+        }
+        else if (monto > saldo)
+        {
+            System.out.println("Fondos insuficientes. Tu saldo es $" + saldo);
+            return false;
+        }
+        else
+        {
+            saldo = saldo - monto;
+            return true;
+        }
+    }
+
+    // Calcula mes por mes cuánto tendrías con interés compuesto.
+    public double proyectarSaldo(int meses, double tasaMensual)
+    {
+        double proyectado = saldo;
+        for (int mes = 1; mes <= meses; mes++)
+        {
+            proyectado = proyectado + proyectado * tasaMensual;
+            System.out.println("  Mes " + mes + ": $" + proyectado);
+        }
+        return proyectado;
+    }
+}`.split('\n');
+  const MB3 = `import java.util.Locale;
+import java.util.Scanner;
+
+/**
+ * MiniBanco POO - Fase 3
+ * Menú en consola: Scanner, do-while, switch y while para revalidar la entrada.
+ *
+ * @author Erick Domínguez Del Prado
+ */
+public class MiniBanco
+{
+    public static void main(String[] args)
+    {
+        // Locale.US: los decimales se escriben con punto (1500.5) en cualquier PC
+        Scanner sc = new Scanner(System.in).useLocale(Locale.US);
+        Cuenta cuenta = null;
+        int siguienteNumero = 1;
+        int opcion;
+
+        System.out.println("MiniBanco POO - Fase 3");
+        do
+        {
+            System.out.println();
+            System.out.println("1 Crear | 2 Depositar | 3 Retirar | 4 Consultar | 5 Salir");
+            System.out.print("Opción: ");
+            while (!sc.hasNextInt())
+            {
+                System.out.println("Eso no es un número entero: " + sc.next());
+                System.out.print("Opción: ");
+            }
+            opcion = sc.nextInt();
+
+            switch (opcion)
+            {
+                case 1:
+                    System.out.print("Titular (una palabra): ");
+                    String titular = sc.next();
+                    cuenta = new Cuenta(titular, siguienteNumero);
+                    siguienteNumero++;
+                    System.out.println("Cuenta #" + cuenta.getNumero() + " creada para " + cuenta.getTitular());
+                    break;
+                case 2:
+                    if (cuenta == null)
+                    {
+                        System.out.println("Primero crea una cuenta (opción 1).");
+                    }
+                    else
+                    {
+                        double monto = leerMonto(sc);
+                        if (cuenta.depositar(monto))
+                        {
+                            System.out.println("Depósito aplicado. Saldo: $" + cuenta.getSaldo());
+                        }
+                    }
+                    break;
+                case 3:
+                    if (cuenta == null)
+                    {
+                        System.out.println("Primero crea una cuenta (opción 1).");
+                    }
+                    else
+                    {
+                        double monto = leerMonto(sc);
+                        if (cuenta.retirar(monto))
+                        {
+                            System.out.println("Retiro aplicado. Saldo: $" + cuenta.getSaldo());
+                        }
+                    }
+                    break;
+                case 4:
+                    if (cuenta == null)
+                    {
+                        System.out.println("Primero crea una cuenta (opción 1).");
+                    }
+                    else
+                    {
+                        System.out.println(cuenta.getTitular() + " tiene $" + cuenta.getSaldo());
+                        System.out.println("Proyección a 3 meses con 1% mensual:");
+                        cuenta.proyectarSaldo(3, 0.01);
+                    }
+                    break;
+                case 5:
+                    System.out.println("Gracias por usar MiniBanco. ¡Hasta pronto!");
+                    break;
+                default:
+                    System.out.println("Opción no válida: " + opcion);
+            }
+        } while (opcion != 5);
+    }
+
+    // Pide un double y repite mientras lo tecleado no sea un número
+    private static double leerMonto(Scanner sc)
+    {
+        System.out.print("Monto: ");
+        while (!sc.hasNextDouble())
+        {
+            System.out.println("Eso no es un número: " + sc.next());
+            System.out.print("Monto: ");
+        }
+        return sc.nextDouble();
+    }
+}`.split('\n');
+
+  // ---------- Posiciones (índices 0-based) de las líneas que se ejecutan ----------
+  const mb = (t, from) => find(MB3, t, from), cl = (t, from) => find(CL3, t, from);
+  const last = a => a[a.length-1];
+  const desde = (a, b) => { const r = []; for(let i=a;i<=b;i++) r.push(i); return r; };
+  const P = {
+    sc: mb('Scanner sc = new Scanner(System.in).useLocale(Locale.US);'),
+    cuenta: mb('Cuenta cuenta = null;'), sig: mb('int siguienteNumero = 1;'), op: mb('int opcion;'),
+    hola: mb('System.out.println("MiniBanco POO - Fase 3");'), do: mb('do'),
+    blank: mb('System.out.println();'),
+    menu: mb('System.out.println("1 Crear | 2 Depositar | 3 Retirar | 4 Consultar | 5 Salir");'),
+    prompt: mb('System.out.print("Opción: ");'), wInt: mb('while (!sc.hasNextInt())'),
+    noInt: mb('System.out.println("Eso no es un número entero: " + sc.next());'),
+    nextInt: mb('opcion = sc.nextInt();'), sw: mb('switch (opcion)'),
+    c1p: mb('System.out.print("Titular (una palabra): ");'), c1n: mb('String titular = sc.next();'),
+    c1new: mb('cuenta = new Cuenta(titular, siguienteNumero);'), c1inc: mb('siguienteNumero++;'),
+    c1out: mb('System.out.println("Cuenta #" + cuenta.getNumero() + " creada para " + cuenta.getTitular());'),
+    ifDep: mb('if (cuenta.depositar(monto))'), depOk: mb('System.out.println("Depósito aplicado. Saldo: $" + cuenta.getSaldo());'),
+    ifRet: mb('if (cuenta.retirar(monto))'), retOk: mb('System.out.println("Retiro aplicado. Saldo: $" + cuenta.getSaldo());'),
+    c4a: mb('System.out.println(cuenta.getTitular() + " tiene $" + cuenta.getSaldo());'),
+    c4b: mb('System.out.println("Proyección a 3 meses con 1% mensual:");'), c4c: mb('cuenta.proyectarSaldo(3, 0.01);'),
+    c5: mb('System.out.println("Gracias por usar MiniBanco. ¡Hasta pronto!");'),
+    def: mb('System.out.println("Opción no válida: " + opcion);'),
+    dw: mb('} while (opcion != 5);'),
+    lp: mb('System.out.print("Monto: ");'), wD: mb('while (!sc.hasNextDouble())'),
+    noD: mb('System.out.println("Eso no es un número: " + sc.next());'), ret: mb('return sc.nextDouble();')
+  };
+  P.wIntB = blockAt(MB3, P.wInt).slice(1);  // .slice(1): solo el cuerpo, sin el encabezado
+  P.prompt2 = mb('System.out.print("Opción: ");', P.wInt);
+  P.swB = blockAt(MB3, P.sw); P.mainEnd = P.dw+1;
+  P.wDB = blockAt(MB3, P.wD).slice(1); P.lp2 = mb('System.out.print("Monto: ");', P.wD);
+  P.ifDepB = blockAt(MB3, P.ifDep).slice(1); P.ifRetB = blockAt(MB3, P.ifRet).slice(1);
+  P.cases = {1:mb('case 1:'), 2:mb('case 2:'), 3:mb('case 3:'), 4:mb('case 4:'), 5:mb('case 5:'), d:mb('default:')};
+  const ORD = [1,2,3,4,5,'d'];
+  P.caseR = {}; ORD.forEach((k,j)=>{ P.caseR[k] = desde(P.cases[k], j<5 ? P.cases[ORD[j+1]]-1 : last(P.swB)-1); });
+  P.brk = {}; [1,2,3,4,5].forEach(k=>{ P.brk[k] = mb('break;', P.cases[k]); });
+  P.ifN = {}; P.ifNB = {}; P.elseB = {}; P.nullMsg = {}; P.leer = {};
+  [2,3,4].forEach(k=>{
+    P.ifN[k] = mb('if (cuenta == null)', P.cases[k]);
+    P.ifNB[k] = blockAt(MB3, P.ifN[k]).slice(1);
+    P.elseB[k] = blockAt(MB3, last(P.ifNB[k])+1);
+    P.nullMsg[k] = mb('System.out.println("Primero crea una cuenta (opción 1).");', P.ifN[k]);
+    if(k<4) P.leer[k] = mb('double monto = leerMonto(sc);', P.cases[k]);
+  });
+  const Q = {
+    c2: block(CL3,'public Cuenta(String titular, int numero)'),
+    gT: block(CL3,'public String getTitular()'), gN: block(CL3,'public int getNumero()'), gS: block(CL3,'public double getSaldo()'),
+    dep: cl('public boolean depositar(double monto)'), depIf: cl('if (monto > 0)'), depSum: cl('saldo = saldo + monto;'),
+    depMsg: cl('System.out.println("Monto inválido: el depósito debe ser mayor que 0.");'),
+    ret: cl('public boolean retirar(double monto)'), r1: cl('if (monto <= 0)'),
+    r1Msg: cl('System.out.println("Monto inválido: el retiro debe ser mayor que 0.");'),
+    r2: cl('else if (monto > saldo)'), r2Msg: cl('System.out.println("Fondos insuficientes. Tu saldo es $" + saldo);'),
+    rRes: cl('saldo = saldo - monto;'),
+    pro: cl('public double proyectarSaldo(int meses, double tasaMensual)'), pInit: cl('double proyectado = saldo;'),
+    pFor: cl('for (int mes = 1; mes <= meses; mes++)'), pCalc: cl('proyectado = proyectado + proyectado * tasaMensual;'),
+    pOut: cl('System.out.println("  Mes " + mes + ": $" + proyectado);'), pRet: cl('return proyectado;')
+  };
+  Q.depIfB = blockAt(CL3, Q.depIf).slice(1); Q.depElseB = blockAt(CL3, last(Q.depIfB)+1);
+  Q.depT = cl('return true;', Q.depIf); Q.depF = cl('return false;', Q.depMsg);
+  Q.r1B = blockAt(CL3, Q.r1).slice(1); Q.r1F = cl('return false;', Q.r1Msg);
+  Q.r2B = blockAt(CL3, Q.r2).slice(1); Q.r2F = cl('return false;', Q.r2Msg);
+  Q.r3B = blockAt(CL3, last(Q.r2B)+1); Q.r3T = cl('return true;', Q.rRes);
+  Q.pForB = blockAt(CL3, Q.pFor).slice(1);
+  const NOMBRE = {1:'crear cuenta', 2:'depositar', 3:'retirar', 4:'consultar', 5:'salir'};
+
+  // ---------- Scanner simulado (tokens separados por espacios, Locale.US) ----------
+  const NUMERAL = '(\\d+|[1-9]\\d?\\d?(,\\d{3})+)';
+  const INT_RE = new RegExp('^[+-]?'+NUMERAL+'$');
+  const DBL_RE = new RegExp('^[+-]?(('+NUMERAL+'(\\.\\d*)?|\\.\\d+)([eE][+-]?\\d+)?|NaN|Infinity)$');
+  const esInt = t => { if(!INT_RE.test(t)) return false; const v = Number(t.replace(/,/g,'')); return v>=-2147483648 && v<=2147483647; };
+  const esDouble = t => DBL_RE.test(t);
+  let S, gen, modo = 'normal', runEv = [], lastEv = null, waiting = null, ended = false, queue = [], lead = null;
+  const explain = makeExplain();
+
+  const E = (f, i, note, o) => Object.assign({f, i, note}, o||{});
+  const print = s => S.out.push({t:s});
+  const println = s => S.out.push({t:s+'\n'});
+  const peek = () => { const m = S.buf.match(/^\s*(\S+)/); return m ? m[1] : null; };
+  const next = () => { const m = S.buf.match(/^\s*(\S+)/); S.buf = S.buf.slice(m[0].length); return m[1]; };
+  function* espera(i, que){ while(!/\S/.test(S.buf)) yield {wait:true, f:'M', i, que}; }
+  function* hayInt(i){ yield* espera(i,'opcion'); return esInt(peek()); }
+  function* hayDouble(i){ yield* espera(i,'monto'); return esDouble(peek()); }
+  const nextInt = () => Number(next().replace(/,/g,''))|0;
+  const nextDouble = () => Number(next().replace(/,/g,''));
+  const tk = t => '<code>"'+esc(t)+'"</code>';
+
+  function* brk(k){
+    yield E('M', P.brk[k], '<b>break</b> sale del switch en ese instante. Sin él, Java seguiría ejecutando el case de abajo aunque no coincida (eso se llama <i>fall-through</i>).', {chips:['break']});
+  }
+
+  // ---------- Métodos de Cuenta ----------
+  function* depositar(o, monto){
+    S.frames.push({name:'depositar(double monto)', vars:{'this':{t:'Cuenta',v:o}, monto:{t:'double',v:monto}}});
+    yield E('C', Q.dep, 'Entra a <code>depositar</code> del objeto @'+o.hash+' con <code>monto = '+jDouble(monto)+'</code>. Ahora regresa <b>boolean</b> para avisar si se aplicó.', {chips:['boolean'], lo:true});
+    const c = monto > 0;
+    yield E('C', Q.depIf, 'Condición <code>monto &gt; 0</code>: '+(c?'se cumple, así que entra al if.':'no se cumple, así que se descarta el if y se ejecuta el else.'),
+      {br:{cond:'monto > 0', ev:jDouble(monto)+' > 0', val:c, take: c?Q.depIfB:Q.depElseB, skip: c?Q.depElseB:Q.depIfB}, chips:['if / else'],
+       title: c ? null : 'Depósito inválido: el if lo frenó'});
+    if(c){
+      const a = o.saldo; o.saldo = o.saldo + monto;
+      yield E('C', Q.depSum, 'El saldo pasó de '+jDouble(a)+' a <b>'+jDouble(o.saldo)+'</b>.', {flash:o, lo:true});
+      yield E('C', Q.depT, '<code>return true</code>: el depósito se aplicó.', {lo:true});
+    } else {
+      println('Monto inválido: el depósito debe ser mayor que 0.');
+      yield E('C', Q.depMsg, 'En la fase 2 este depósito habría bajado el saldo. Ahora el else solo avisa y el saldo <b>no cambia</b> ('+jDouble(o.saldo)+').', {chips:['Validación']});
+      yield E('C', Q.depF, '<code>return false</code>: avisa a main que no se aplicó.', {lo:true});
+    }
+    S.frames.pop();
+    return c;
+  }
+  function* retirar(o, monto){
+    S.frames.push({name:'retirar(double monto)', vars:{'this':{t:'Cuenta',v:o}, monto:{t:'double',v:monto}}});
+    yield E('C', Q.ret, 'Entra a <code>retirar</code> con <code>monto = '+jDouble(monto)+'</code>. Tiene tres caminos posibles: <b>if / else if / else</b>. Java revisa las condiciones de arriba hacia abajo y ejecuta <b>solo la primera</b> que sea true.', {chips:['if / else if / else'], lo:true});
+    const c1 = monto <= 0;
+    yield E('C', Q.r1, 'Primera condición, <code>monto &lt;= 0</code>: '+(c1?'true. Entra aquí y las demás ramas ni se revisan.':'false. Pasa a revisar la siguiente.'),
+      {br:{cond:'monto <= 0', ev:jDouble(monto)+' <= 0', val:c1, take: c1?Q.r1B:[], skip: c1?Q.r2B.concat(Q.r3B):Q.r1B}, chips:['if'], title: c1?'Retiro inválido: monto <= 0':null});
+    let ok = false;
+    if(c1){
+      println('Monto inválido: el retiro debe ser mayor que 0.');
+      yield E('C', Q.r1Msg, 'Avisa que el monto no es válido. El saldo no cambia.', {lo:true});
+      yield E('C', Q.r1F, '<code>return false</code>.', {lo:true});
+    } else {
+      const c2 = monto > o.saldo;
+      yield E('C', Q.r2, 'Segunda condición, <code>monto &gt; saldo</code>: '+(c2?'true. No alcanza el dinero: entra al else if y el else queda descartado.':'false. Sí alcanza: se descarta esta rama y entra al else.'),
+        {br:{cond:'monto > saldo', ev:jDouble(monto)+' > '+jDouble(o.saldo), val:c2, take: c2?Q.r2B:Q.r3B, skip: c2?Q.r3B:Q.r2B}, chips:['else if'],
+         title: c2?'Fondos insuficientes: if / else if / else':'Retiro aplicado: if / else if / else'});
+      if(c2){
+        println('Fondos insuficientes. Tu saldo es $'+jDouble(o.saldo));
+        yield E('C', Q.r2Msg, 'Avisa cuánto hay. El saldo <b>no cambia</b>: el else, que es el único que resta, nunca corrió.', {chips:['Validación']});
+        yield E('C', Q.r2F, '<code>return false</code>: main sabrá que el retiro no se hizo.', {lo:true});
+      } else {
+        const a = o.saldo; o.saldo = o.saldo - monto; ok = true;
+        yield E('C', Q.rRes, 'Ninguna condición anterior fue true, así que corre el <b>else</b>: el saldo pasó de '+jDouble(a)+' a <b>'+jDouble(o.saldo)+'</b>.', {flash:o, chips:['else']});
+        yield E('C', Q.r3T, '<code>return true</code>.', {lo:true});
+      }
+    }
+    S.frames.pop();
+    return ok;
+  }
+  function* proyectar(o, meses, tasa){
+    const fr = {name:'proyectarSaldo(int meses, double tasaMensual)', vars:{'this':{t:'Cuenta',v:o}, meses:{t:'int',v:meses}, tasaMensual:{t:'double',v:tasa}}};
+    S.frames.push(fr);
+    yield E('C', Q.pro, 'Entra a <code>proyectarSaldo</code> con <code>meses = '+meses+'</code> y <code>tasaMensual = '+jDouble(tasa)+'</code>.', {lo:true});
+    let p = o.saldo; fr.vars.proyectado = {t:'double', v:p}; S.tabla = [];
+    yield E('C', Q.pInit, '<code>proyectado</code> arranca con el saldo actual: '+jDouble(p)+'. Es una variable local: el saldo real del objeto no se toca.', {lo:true});
+    let mes = 1; fr.vars.mes = {t:'int', v:mes};
+    yield E('C', Q.pFor, 'Empieza el <b>for</b>. Tiene tres partes: <code>int mes = 1</code> (inicio, corre una sola vez), <code>mes &lt;= meses</code> (condición, se revisa antes de cada vuelta) y <code>mes++</code> (actualización, al final de cada vuelta). Úsalo cuando sabes cuántas vueltas darás.', {chips:['Ciclo for']});
+    for(;;){
+      const c = mes <= meses;
+      yield E('C', Q.pFor, 'Condición del for: '+(c?'true, da la vuelta '+mes+'.':'false, el ciclo termina.'),
+        {br:{cond:'mes <= meses', ev:mes+' <= '+meses, val:c, take: c?Q.pForB:[], skip: c?[]:Q.pForB}, lo: c && mes>1});
+      if(!c) break;
+      const antes = p; p = p + p * tasa; fr.vars.proyectado.v = p;
+      S.tabla.push({mes, antes, p});
+      yield E('C', Q.pCalc, 'Vuelta '+mes+': '+jDouble(antes)+' + '+jDouble(antes)+' × '+jDouble(tasa)+' = <b>'+jDouble(p)+'</b>.', {lo:true});
+      println('  Mes '+mes+': $'+jDouble(p));
+      yield E('C', Q.pOut, 'Imprime el renglón del mes '+mes+'.', {lo:true});
+      mes++; fr.vars.mes.v = mes;
+      yield E('C', Q.pFor, 'Actualización <code>mes++</code>: ahora <code>mes = '+mes+'</code>. Regresa a revisar la condición.', {lo:true});
+    }
+    delete fr.vars.mes;
+    const largo = S.tabla.some(r=>/\.\d{7,}/.test(jDouble(r.p)));
+    yield E('C', Q.pRet, 'El for dio '+meses+' vueltas (mira la tabla en la memoria). <code>return</code> regresa '+jDouble(p)+'; main no lo guarda porque el método ya imprimió cada mes.'+
+      (largo ? ' ¿Por qué salen decimales como <code>…00000002</code>? Un <b>double</b> guarda los números en binario y 0.01 no se puede representar exacto, así que se acumula un error diminuto. Java imprime ese valor tal cual; más adelante aprenderemos a formatearlo.' : ''), {chips:['return'].concat(largo?['Precisión de double']:[])});
+    S.frames.pop();
+  }
+  function* leerMonto(){
+    S.frames.push({name:'leerMonto(Scanner sc)', vars:{sc:{t:'Scanner', v:1}}});
+    print('Monto: ');
+    yield E('M', P.lp, 'Ya dentro de <code>leerMonto</code>, pide el monto.', {lo:true});
+    for(;;){
+      const ok = yield* hayDouble(P.wD);
+      const t = peek();
+      yield E('M', P.wD, '<code>hasNextDouble()</code> revisa el siguiente token, '+tk(t)+', sin consumirlo: '+(ok?'sí es un double, así que <code>!true</code> = false y no entra al while.':'<b>no</b> es un double, así que <code>!false</code> = true y entra al while a pedirlo otra vez.'),
+        {br:{cond:'!sc.hasNextDouble()', ev:'!'+(ok?'true':'false'), val:!ok, take: ok?[]:P.wDB, skip: ok?P.wDB:[]}, chips:['while','hasNextDouble()'], lo: ok});
+      if(ok) break;
+      const x = next(); println('Eso no es un número: '+x);
+      yield E('M', P.noD, '<code>sc.next()</code> sacó '+tk(x)+' del búfer para descartarlo.', {title:'Monto no numérico: el while revalida'});
+      print('Monto: ');
+      yield E('M', P.lp2, 'Vuelve a pedir el monto.', {lo:true});
+    }
+    const v = nextDouble();
+    yield E('M', P.ret, '<code>sc.nextDouble()</code> consumió el token y lo convirtió a double: <b>'+jDouble(v)+'</b>. <code>return</code> se lo entrega a main.', {chips:['nextDouble()','return']});
+    S.frames.pop();
+    return v;
+  }
+
+  // ---------- main ----------
+  function* programa(){
+    const V = S.frames[0].vars;
+    V.sc = {t:'Scanner', v:1};
+    yield E('M', P.sc, 'Se crea un objeto <b>Scanner</b> conectado a <code>System.in</code>, el teclado: con él el programa puede <b>leer</b> lo que escribas en la terminal. Para usarlo hubo que importarlo (<code>import java.util.Scanner;</code>). <code>useLocale(Locale.US)</code> fija que los decimales se escriben con punto (1500.5) aunque la PC esté en español.', {chips:['Scanner','System.in','import']});
+    V.cuenta = {t:'Cuenta', v:null};
+    yield E('M', P.cuenta, '<code>cuenta</code> vale <b>null</b>: la variable existe, pero aún no apunta a ningún objeto. Sin arreglos (fase 4), el banco maneja una sola cuenta a la vez.', {chips:['null']});
+    V.siguienteNumero = {t:'int', v:1};
+    yield E('M', P.sig, 'Contador para numerar las cuentas.', {lo:true});
+    V.opcion = {t:'int', v:undefined};
+    yield E('M', P.op, 'Se declara <code>opcion</code> sin valor. Java no deja leer una variable local antes de asignarle algo; su valor llegará con <code>sc.nextInt()</code>.', {lo:true});
+    println('MiniBanco POO - Fase 3');
+    yield E('M', P.hola, 'Saludo inicial.', {lo:true});
+    let vuelta = 0, op;
+    do {
+      vuelta++;
+      yield E('M', P.do, vuelta===1 ? 'Empieza el <b>do-while</b>. A diferencia del while, su cuerpo corre <b>al menos una vez</b> porque la condición se revisa hasta el final. Es ideal para un menú, que siempre debe mostrarse la primera vez.' : 'Vuelta '+vuelta+' del do-while: se muestra el menú otra vez.', {chips:['do-while'], lo: vuelta>1});
+      println('');
+      yield E('M', P.blank, 'Línea en blanco para separar.', {lo:true});
+      println('1 Crear | 2 Depositar | 3 Retirar | 4 Consultar | 5 Salir');
+      yield E('M', P.menu, 'Muestra el menú.', {lo:true});
+      print('Opción: ');
+      yield E('M', P.prompt, '<code>print</code> (sin <code>ln</code>) no salta de línea: lo que teclees aparece junto a "Opción: ".', {lo:true});
+      for(;;){
+        const ok = yield* hayInt(P.wInt);
+        const t = peek();
+        yield E('M', P.wInt, '<code>hasNextInt()</code> revisa el siguiente token del búfer, '+tk(t)+', <b>sin consumirlo</b>: '+(ok?'sí es un int, así que <code>!true</code> = false y el while no entra.':'<b>no</b> es un int, así que <code>!false</code> = true y el while entra para pedirlo de nuevo.'),
+          {br:{cond:'!sc.hasNextInt()', ev:'!'+(ok?'true':'false'), val:!ok, take: ok?[]:P.wIntB, skip: ok?P.wIntB:[]}, chips:['while','hasNextInt()'], lo: ok && vuelta>1});
+        if(ok) break;
+        const x = next(); println('Eso no es un número entero: '+x);
+        yield E('M', P.noInt, '<code>sc.next()</code> <b>consumió</b> '+tk(x)+' del búfer y lo mostró. Es indispensable: si no lo sacara, hasNextInt() vería el mismo token una y otra vez y el while sería infinito. Y sin este while, <code>sc.nextInt()</code> fallaría con una excepción (fase 6).', {chips:['Validar entrada'], title:'Teclear letras: el while revalida'});
+        print('Opción: ');
+        yield E('M', P.prompt2, 'Vuelve a pedir la opción y regresa a la condición del while.', {lo:true});
+      }
+      op = nextInt(); V.opcion.v = op;
+      yield E('M', P.nextInt, '<code>sc.nextInt()</code> consumió el token y lo convirtió a int: <b>opcion = '+op+'</b>.', {chips:['nextInt()']});
+      const k = (op>=1 && op<=5) ? op : 'd';
+      yield E('M', P.sw, 'El <b>switch</b> compara <code>opcion</code> ('+op+') con cada case y salta directo al que coincide'+(k==='d'?'. Ninguno coincide: va a <code>default</code>.':': <code>case '+op+'</code>.'), {chips:['switch'], lo:true});
+      const skipCases = ORD.filter(x=>x!==k).flatMap(x=>P.caseR[x]);
+      yield E('M', P.cases[k], k==='d' ? '<b>default</b> atrapa cualquier valor sin case: '+op+' no es una opción del menú.' : 'Entró a <b>case '+op+'</b> porque <code>opcion == '+op+'</code> ('+NOMBRE[op]+'). Los demás cases se saltan.',
+        {br:{cond:'switch (opcion)', ev:'opcion = '+op, val: k==='d'?'default':'case '+op, take:P.caseR[k], skip:skipCases}, chips:['switch','case'].concat(k==='d'?['default']:[]),
+         title: k==='d' ? 'default: la opción '+op+' no existe' : 'case '+op+': '+NOMBRE[op]});
+      if(k===1){
+        print('Titular (una palabra): ');
+        yield E('M', P.c1p, 'Pide el nombre. <code>next()</code> lee <b>un solo token</b> (hasta el primer espacio); por eso dice "una palabra".', {lo:true});
+        yield* espera(P.c1n, 'titular');
+        const tit = next(); V.titular = {t:'String', v:tit};
+        const resto = S.buf.trim();
+        yield E('M', P.c1n, '<code>sc.next()</code> leyó '+tk(tit)+' y lo guardó en <code>titular</code>.'+(resto?' En el búfer quedó <code>'+esc(resto)+'</code>: lo recibirá la siguiente lectura.':''), {chips:['next()']},);
+        const ant = V.cuenta.v;
+        const o = {titular:tit, numero:V.siguienteNumero.v, saldo:0, hash:hash()};
+        S.objs.push(o); V.cuenta.v = o; if(ant) ant.gone = true;
+        yield E('M', P.c1new, '<code>new Cuenta(titular, siguienteNumero)</code> usó el constructor de 2 parámetros (fase 2, en azul): saldo 0. Ahora <code>cuenta</code> apunta a @'+o.hash+'.'+(ant?' El objeto anterior (@'+ant.hash+') se quedó <b>sin referencias</b>: ya nadie puede usarlo y el <b>recolector de basura</b> de la JVM liberará esa memoria.':''),
+          {extra:Q.c2, chips:['new','Constructor'].concat(ant?['Recolector de basura']:[]), flash:o});
+        V.siguienteNumero.v++;
+        yield E('M', P.c1inc, '<code>siguienteNumero++</code> le suma 1: la próxima cuenta será la #'+V.siguienteNumero.v+'.', {chips:['++'], lo:true});
+        println('Cuenta #'+o.numero+' creada para '+o.titular);
+        yield E('M', P.c1out, 'Confirma usando los getters.', {extra:Q.gN.concat(Q.gT), lo:true});
+        yield* brk(1);
+      } else if(k===2 || k===3 || k===4){
+        const nul = V.cuenta.v===null, o = V.cuenta.v;
+        yield E('M', P.ifN[k], nul ? 'Todavía no hay cuenta: <code>cuenta == null</code> es true y entra al if.' : 'Sí hay cuenta: <code>cuenta == null</code> es false, se descarta el if y entra al else.',
+          {br:{cond:'cuenta == null', ev:(nul?'null':'@'+o.hash)+' == null', val:nul, take: nul?P.ifNB[k]:P.elseB[k], skip: nul?P.elseB[k]:P.ifNB[k]}, chips:['if / else','null'], title: nul?'Sin cuenta: el if lo detecta':null});
+        if(nul){
+          println('Primero crea una cuenta (opción 1).');
+          yield E('M', P.nullMsg[k], 'Sin este if, <code>cuenta.depositar(...)</code> sobre null fallaría (NullPointerException).', {lo:true});
+        } else if(k===4){
+          println(o.titular+' tiene $'+jDouble(o.saldo));
+          yield E('M', P.c4a, 'Lee el estado con los getters (en azul).', {extra:Q.gT.concat(Q.gS), lo:true});
+          println('Proyección a 3 meses con 1% mensual:');
+          yield E('M', P.c4b, 'Encabezado de la proyección.', {lo:true});
+          yield E('M', P.c4c, 'Llama a <code>proyectarSaldo(3, 0.01)</code>: 3 meses al 1% mensual.', {lo:true, title:'case 4: consultar y proyectar con un for'});
+          yield* proyectar(o, 3, 0.01);
+          yield E('M', P.c4c, 'De regreso en main.', {lo:true});
+        } else {
+          yield E('M', P.leer[k], 'Llama al método <code>leerMonto(sc)</code>, que no regresa hasta tener un double válido.', {chips:['Método static'], lo:true});
+          const monto = yield* leerMonto();
+          V.monto = {t:'double', v:monto};
+          yield E('M', P.leer[k], '<code>leerMonto</code> regresó '+jDouble(monto)+' y quedó en la variable <code>monto</code>.', {lo:true});
+          const L = k===2 ? P.ifDep : P.ifRet, B = k===2 ? P.ifDepB : P.ifRetB, metodo = k===2 ? 'depositar' : 'retirar';
+          yield E('M', L, 'Para evaluar la condición del if, primero hay que llamar a <code>cuenta.'+metodo+'(monto)</code>.', {lo:true});
+          const r = k===2 ? yield* depositar(o, monto) : yield* retirar(o, monto);
+          yield E('M', L, '<code>'+metodo+'</code> regresó <b>'+r+'</b>: '+(r?'entra al if y confirma.':'el if se descarta y no imprime nada más (el método ya explicó el motivo).'),
+            {br:{cond:'cuenta.'+metodo+'(monto)', ev:String(r), val:r, take: r?B:[], skip: r?[]:B}, chips:['boolean','if']});
+          if(r){
+            println((k===2?'Depósito':'Retiro')+' aplicado. Saldo: $'+jDouble(o.saldo));
+            yield E('M', k===2?P.depOk:P.retOk, 'Confirma el nuevo saldo con getSaldo().', {extra:Q.gS, lo:true});
+          }
+        }
+        yield* brk(k);
+      } else if(k===5){
+        println('Gracias por usar MiniBanco. ¡Hasta pronto!');
+        yield E('M', P.c5, 'Se despide.', {lo:true});
+        yield* brk(5);
+      } else {
+        println('Opción no válida: '+op);
+        yield E('M', P.def, 'Avisa que la opción no existe. Aquí no hace falta break: default es el último y después ya no hay más cases.', {chips:['default']});
+      }
+      delete V.titular; delete V.monto;
+      const c = op !== 5;
+      yield E('M', P.dw, 'Condición del do-while: '+(c?'true, el menú se repite.':'false, el ciclo termina.'),
+        {br:{cond:'opcion != 5', ev:op+' != 5', val:c, take:[], skip:[]}, chips:['do-while']});
+    } while(op !== 5);
+    yield E('M', P.mainEnd, 'main llegó a su llave de cierre: el programa terminó.', {title:'El programa terminó'});
+  }
+
+  // ---------- Motor: avanzar, correr, entregar entrada ----------
+  function nuevo(){
+    S = {buf:'', out:[], frames:[{name:'main(String[] args)', vars:{}}], objs:[], tabla:[]};
+    gen = programa(); runEv = []; lastEv = null; waiting = null; ended = false; queue = []; lead = null;
+    explain.reset();
+  }
+  function avanzar(){
+    for(;;){
+      const r = gen.next();
+      if(r.done){ ended = true; waiting = null; return {done:true}; }
+      if(r.value.wait){
+        if(queue.length){ entregar(queue.shift()); continue; }
+        waiting = r.value; return r.value;
+      }
+      waiting = null; lastEv = r.value; return r.value;
+    }
+  }
+  function correr(){
+    runEv = [];
+    for(let n=0;n<20000;n++){ const e = avanzar(); if(e.done || e.wait) break; runEv.push(e); }
+  }
+  function entregar(line){ S.out.push({t:line+'\n', k:'in'}); S.buf += line+'\n'; }
+
+  // ---------- Pintar ----------
+  const archivo = f => f==='M' ? 'MiniBanco.java' : 'Cuenta.java';
+  function rangos(a){
+    const s = [...new Set(a)].sort((x,y)=>x-y), r = [];
+    s.forEach(i=>{ const l = r[r.length-1]; if(l && i===l[1]+1) l[1]=i; else r.push([i,i]); });
+    return r.map(([a,b])=> a===b ? ''+(a+1) : (a+1)+'–'+(b+1)).join(', ');
+  }
+  function fmt(x){
+    if(x.t==='Scanner') return 'System.in';
+    if(x.t==='Cuenta') return x.v ? '→ @'+x.v.hash : 'null';
+    if(x.v===undefined) return 'sin valor';
+    if(x.t==='double') return jDouble(x.v);
+    if(x.t==='String') return '"'+esc(x.v)+'"';
+    return String(x.v);
+  }
+  function condHTML(br){
+    const v = br.val, cls = v===true ? 't' : v===false ? 'f' : 't';
+    return '<div class="cond">'+esc(br.cond)+'  →  '+esc(br.ev)+'  →  <span class="'+cls+'">'+esc(String(v))+'</span></div>';
+  }
+  function render(){
+    // Marcas en el código
+    const mk = {M:{}, C:{}};
+    const set = (f, arr, c, force) => arr.forEach(i=>{ if(force || !mk[f][i] || mk[f][i]==='skip') mk[f][i] = c; });
+    let cur = null;
+    if(modo==='normal'){
+      runEv.forEach(e=>{ if(e.br) set(e.br.f||e.f, e.br.skip, 'skip'); });
+      runEv.forEach(e=>{ set(e.f, [e.i], 'on', true); if(e.extra) set('C', e.extra, 'on2'); });
+      cur = waiting || (runEv.length ? runEv[runEv.length-1] : lastEv);
+    } else {
+      cur = waiting || lastEv;
+      if(lastEv && !waiting){
+        if(lastEv.br){ set(lastEv.br.f||lastEv.f, lastEv.br.skip, 'skip'); set(lastEv.br.f||lastEv.f, lastEv.br.take, 'on'); }
+        if(lastEv.extra) set('C', lastEv.extra, 'on2');
+      }
+    }
+    if(cur && cur.f) mk[cur.f][cur.i] = 'cur';
+    paint('mainCode', codeHTML(MB3, i => mk.M[i]||''));
+    paint('classCode', codeHTML(CL3, i => mk.C[i]||''));
+
+    // Memoria: pila de llamadas, búfer, heap y tabla del for
+    let h = '';
+    const fr = S.frames.slice().reverse();
+    h += fr.map((f,j)=>{
+      const ks = Object.keys(f.vars);
+      return '<div class="vars'+(j===0?' top':'')+'"><div class="vh">'+(j===0?'▶ ':'')+esc(f.name)+(j===0?' · en ejecución':'')+'</div>'+
+        (ks.length ? ks.map(k=>'<div class="var"><span class="vt">'+f.vars[k].t+'</span><b>'+k+'</b><span class="vv">'+fmt(f.vars[k])+'</span></div>').join('') : '<div class="var"><span class="vt">sin variables todavía</span></div>')+'</div>';
+    }).join('');
+    const vis = S.buf.replace(/\n/g,'⏎');
+    h += '<div class="buf">Búfer de <b>System.in</b> (lo tecleado que Scanner aún no consume): '+(vis ? '<code>'+esc(vis)+'</code>' : '<i>vacío</i>')+
+      (vis && !/\S/.test(S.buf) ? '<br>Solo queda el Enter; next() y nextInt() saltan los espacios y saltos de línea.' : '')+'</div>';
+    const fl = lastEv && lastEv.flash;
+    h += S.objs.map(o=>{
+      const lk = '<td class="lk" title="private">🔒</td>', f = fl===o && o.saldo!==undefined ? ' class="flash"' : '';
+      return '<div class="obj'+(o.gone?' gone':' sel')+'"><div class="hd"><span>Cuenta @'+o.hash+'</span><span>'+(o.gone?'sin referencias · basura':'← cuenta')+'</span></div><table>'+
+        '<tr>'+lk+'<td class="t">String</td><td>titular</td><td class="v">"'+esc(o.titular)+'"</td></tr>'+
+        '<tr>'+lk+'<td class="t">int</td><td>numero</td><td class="v">'+o.numero+'</td></tr>'+
+        '<tr'+f+'>'+lk+'<td class="t">double</td><td>saldo</td><td class="v">'+jDouble(o.saldo)+'</td></tr></table></div>';
+    }).join('');
+    if(S.tabla.length) h += '<div class="tabla"><div class="vh">Iteraciones del for en proyectarSaldo</div><table><tr><th>mes</th><th>antes</th><th>proyectado</th></tr>'+
+      S.tabla.map(r=>'<tr><td>'+r.mes+'</td><td>'+jDouble(r.antes)+'</td><td>'+jDouble(r.p)+'</td></tr>').join('')+'</table></div>';
+    $('heap').innerHTML = h;
+
+    // Terminal
+    $('f3Out').innerHTML = S.out.map(s=> s.k==='in' ? '<span class="in">'+esc(s.t)+'</span>' : esc(s.t)).join('');
+    const inp = $('f3In'), term = $('f3Term');
+    inp.hidden = !waiting;
+    term.scrollTop = 1e9;
+
+    // Estado y botones
+    const pideOpcion = waiting && waiting.que==='opcion' && !queue.length;
+    $('f3Estado').innerHTML = ended ? '<b>El programa terminó.</b> Pulsa "Reiniciar programa" para correrlo de nuevo.' :
+      waiting ? '<b>Scanner está esperando</b> '+(waiting.que==='opcion'?'la opción del menú':waiting.que==='monto'?'el monto':'el titular')+'. Escríbelo en la terminal y presiona Enter.' :
+      modo==='paso' ? 'Modo paso a paso: presiona <b>Siguiente</b> para ejecutar la próxima línea.' : '';
+    $('f3Sig').disabled = modo!=='paso' || ended || !!waiting;
+    ['f3E1','f3E2','f3E3'].forEach(id=>{ $(id).disabled = !(pideOpcion || ended); });
+    $('f3Normal').setAttribute('aria-pressed', modo==='normal'); $('f3Paso').setAttribute('aria-pressed', modo==='paso');
+
+    // Explicación
+    explicar();
+  }
+
+  function explicar(){
+    const espera = waiting ? '<p class="espera">⏳ El programa está <b>detenido</b> en la línea '+(waiting.i+1)+': Scanner bloquea la ejecución hasta que haya algo que leer en el búfer. Escribe en la terminal.</p>' : '';
+    if(modo==='paso' && lastEv && !lead){
+      const e = lastEv, L = e.f==='M' ? MB3 : CL3;
+      const br = e.br ? condHTML(e.br)+'<p>'+(e.br.take.length?'Rama tomada: líneas '+rangos(e.br.take)+'. ':'')+(e.br.skip.length?'Descartada: líneas '+rangos(e.br.skip)+' (en rojo).':'')+'</p>' : '';
+      explain('Línea '+(e.i+1)+' · '+archivo(e.f), ['<code>'+esc(L[e.i].trim())+'</code>', e.note+(waiting?'':''), br].filter(Boolean).concat(waiting?[]:[]), e.chips||[]);
+      if(waiting) $('exp').insertAdjacentHTML('beforeend', espera);
+      return;
+    }
+    const evs = runEv.filter(e=>!e.lo);
+    let titulo = lead ? lead.t : null;
+    if(!titulo){ for(let j=runEv.length-1;j>=0;j--) if(runEv[j].title){ titulo = runEv[j].title; break; } }
+    if(!titulo) titulo = waiting ? (waiting.que==='opcion'?'Esperando tu opción':waiting.que==='monto'?'Esperando el monto':'Esperando el titular') : (modo==='paso'?'Modo paso a paso':'Listo');
+    const body = (lead ? lead.p : []).slice();
+    if(evs.length) body.push('<ol class="notas">'+evs.map(e=>'<li><span class="lnref">'+(e.f==='C'?'Cuenta ':'')+'L'+(e.i+1)+'</span>'+e.note+(e.br?condHTML(e.br):'')+'</li>').join('')+'</ol>');
+    const chips = [...new Set(evs.flatMap(e=>e.chips||[]).concat(lead && lead.chips || []))];
+    explain(titulo, body, chips, lead && lead.warn);
+    if(espera) $('exp').insertAdjacentHTML('beforeend', espera);
+  }
+
+  // ---------- Acciones ----------
+  function start(){
+    nuevo();
+    lead = {t:'Fase 3: el programa toma decisiones',
+      p:['Ahora <b>MiniBanco.java</b> es un programa completo con menú: lee lo que tecleas con <b>Scanner</b> y, según el valor, decide qué hacer con <b>if/else</b>, <b>switch</b> y ciclos (<b>while</b>, <b>do-while</b>, <b>for</b>).',
+         'Escribe una opción en la terminal (empieza con <b>1</b> para crear una cuenta) y presiona Enter. Con <b>Paso a paso</b> verás cada línea, el valor de <code>opcion</code>, qué case entra y qué rama de cada if se toma o se descarta.'],
+      chips:['Scanner','Control de flujo']};
+    if(modo==='normal') correr();
+    render();
+  }
+  function enviar(line){
+    if(!waiting) return;
+    lead = null;
+    entregar(line);
+    if(modo==='normal') correr();
+    else { lastEv = null; runEv = []; avanzarPaso(); return; }
+    render();
+  }
+  function avanzarPaso(){
+    lead = null;
+    const e = avanzar();
+    if(!e.wait && !e.done) runEv = [e];
+    render();
+  }
+  function experimento(lines, l){
+    if(ended){ nuevo(); correr(); }
+    else if(!(waiting && waiting.que==='opcion')) return;
+    const necesita = lines.needsCuenta && !S.frames[0].vars.cuenta.v;
+    const seq = (necesita ? ['1','Rick','2','500'] : []).concat(lines);
+    lead = l(seq);
+    queue = seq.slice(1);
+    entregar(seq[0]);
+    if(modo==='normal') correr();
+    else { runEv = []; lastEv = null; const e = avanzar(); if(!e.wait && !e.done) runEv=[e]; lead.p = lead.p.concat(['Ahora presiona <b>Siguiente</b> para recorrerlo línea por línea; lo tecleado se irá entregando cada vez que Scanner lo pida.']); }
+    render();
+  }
+  const tecleado = seq => 'Tecleé por ti: '+seq.map(s=>'<code>'+esc(s)+'</code>').join(' ⏎ ')+' ⏎.';
+
+  $('f3Form').onsubmit = ev => { ev.preventDefault(); const v = $('f3In').value; $('f3In').value=''; enviar(v); $('f3In').focus({preventScroll:true}); };
+  $('f3Term').onclick = () => { if(waiting) $('f3In').focus({preventScroll:true}); };
+  $('f3Sig').onclick = avanzarPaso;
+  $('f3Normal').onclick = () => { if(modo==='normal') return; modo='normal'; lead=null; if(!ended && !waiting) correr(); else runEv = lastEv ? [lastEv] : []; render(); };
+  $('f3Paso').onclick = () => { if(modo==='paso') return; modo='paso'; lead = {t:'Modo paso a paso', p:['Cada clic en <b>Siguiente</b> ejecuta una línea. Verás en amarillo la línea actual; en un if, la rama tomada y en rojo la descartada, con la condición evaluada.'], chips:['Depuración']}; render(); };
+  $('f3Reset').onclick = start;
+  $('f3E1').onclick = () => { const s = S.frames[0].vars.cuenta.v; const m = s ? String(Math.floor(Math.max(0, s.saldo)) + 1000) : '9999';
+    const lines = ['3', m]; lines.needsCuenta = true;
+    experimento(lines, seq => ({t:'Experimento: retirar más que el saldo', p:[tecleado(seq), 'Fíjate en <b>Cuenta.retirar</b>: la primera condición (<code>monto &lt;= 0</code>) fue false, la segunda (<code>monto &gt; saldo</code>) true, y el else quedó descartado. El saldo no cambió y el método regresó false.'], chips:['if / else if / else','boolean']})); };
+  $('f3E2').onclick = () => { const lines = ['2','-100']; lines.needsCuenta = true;
+    experimento(lines, seq => ({t:'Experimento: depositar -100', p:[tecleado(seq), 'En la fase 2 esto bajaba el saldo. Ahora <code>if (monto &gt; 0)</code> es false, el else imprime el aviso y depositar regresa false, así que main no imprime "Depósito aplicado".'], chips:['if / else','Validación']})); };
+  $('f3E3').onclick = () => { experimento(['hola'], seq => ({t:'Experimento: letras en vez de un número', p:[tecleado(seq), '<code>hasNextInt()</code> responde false sin consumir nada. El while entra, <code>sc.next()</code> saca "hola" del búfer y vuelve a pedir la opción. Sin ese while, <code>sc.nextInt()</code> lanzaría una <b>InputMismatchException</b> y el programa se detendría (las excepciones llegan en la fase 6).'], chips:['while','hasNextInt()','Validar entrada']})); };
+
+  return {
+    tabs:['MiniBanco.java · menú con Scanner, do-while y switch','Cuenta.java · depositar y retirar con if / else'],
+    refnote:'Arriba, la <b>pila de llamadas</b>: el método en ejecución y sus variables locales. Abajo, los objetos del heap. 🔒 = <b>private</b>.',
+    memSub:'Pila de llamadas, búfer del teclado y heap',
+    accSub:'Tú eres el usuario frente a la terminal',
+    leyenda:'<span><i style="background:#F4C95D"></i>línea actual</span><span><i style="background:rgba(244,201,93,.45)"></i>ya corrió / rama tomada</span><span><i style="background:#E07A70"></i>rama descartada</span><span><i style="background:#7FC4F2"></i>método llamado</span>',
+    wide:true, noConsole:true,
+    start
+  };
+  })();
+
+  /* =====================================================================
      Navegación entre fases
      ===================================================================== */
   const FASES = {
     1:{mod:F1, lbl:'Fase 1 · Clases, objetos y métodos'},
-    2:{mod:F2, lbl:'Fase 2 · Construcción y alteración de objetos'}
+    2:{mod:F2, lbl:'Fase 2 · Construcción y alteración de objetos'},
+    3:{mod:F3, lbl:'Fase 3 · Control de flujo y entrada por consola'}
   };
   const ULTIMA = Math.max(...Object.keys(FASES).map(Number));
   let actual = 0;
@@ -767,7 +1501,10 @@ public class Cuenta
     $('tabClass').textContent = F.mod.tabs[1];
     $('refnote').innerHTML = F.mod.refnote;
     $('grid').classList.toggle('wide', !!F.mod.wide);
-    $('leyenda').hidden = true;
+    $('leyenda').hidden = !F.mod.leyenda;
+    $('leyenda').innerHTML = F.mod.leyenda || '';
+    $('memSub').textContent = F.mod.memSub || 'Objetos vivos en el heap de la JVM';
+    $('accSub').textContent = F.mod.accSub || 'Lo que haría el usuario del banco';
     $('console').hidden = !!F.mod.noConsole;
     document.querySelectorAll('#ruta .card').forEach(b=>{
       const f = +b.dataset.f, hecho = !!FASES[f];

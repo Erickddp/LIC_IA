@@ -7,7 +7,7 @@ Cada app explica, mientras se usa, qué código se ejecuta y por qué.
 
 | Carpeta | Proyecto | Materia | Estado |
 |---|---|---|---|
-| `poo/` | MiniBanco POO | Programación orientada a objetos | Fase 2 de 6 |
+| `poo/` | MiniBanco POO | Programación orientada a objetos | Fase 3 de 6 |
 
 ## MiniBanco POO
 
@@ -18,7 +18,7 @@ Cada app explica, mientras se usa, qué código se ejecuta y por qué.
 |---|---|---|---|
 | 1 | Clases, objetos y métodos | `poo/java/fase1/` | Lista |
 | 2 | Construcción y alteración de objetos: constructores sobrecargados, `this`, `private`, getters y setter | `poo/java/fase2/` | Lista |
-| 3 | Control de flujo y entrada por consola | — | Pendiente |
+| 3 | Control de flujo y entrada por consola: `if`/`else if`/`else`, `switch`, `while`, `do-while`, `for` y `Scanner` | `poo/java/fase3/` | Lista |
 | 4 | Arreglos | — | Pendiente |
 | 5 | Herencia y polimorfismo | — | Pendiente |
 | 6 | Excepciones e hilos | — | Pendiente |
@@ -31,6 +31,8 @@ Rick tiene $1600.5
 Ana Sofía tiene $300.0
 c1 == c3: true
 ```
+
+La fase 3 es interactiva: al correr `MiniBanco` se abre la terminal de BlueJ con el menú (1 Crear, 2 Depositar, 3 Retirar, 4 Consultar, 5 Salir). Los decimales se escriben con punto (`1500.5`) porque el `Scanner` usa `Locale.US`. En la web, la terminal simulada tiene modo normal y modo paso a paso.
 
 ## Publicación (GitHub Pages)
 
